@@ -3,7 +3,7 @@
 Arkadaşlarınızla aynı anda video izlemenizi sağlayan **Windows masaüstü** uygulaması. Sesli sohbet, ekran paylaşımı, gerçek zamanlı chat ve oda senkronizasyonu sunar.
 
 🌐 **Web sitesi:** [watchtofriend.web.app](https://watchtofriend.web.app)  
-📱 **Android sürümü:** [WatchToFriend](../WatchToFriend) (ayrı repo)
+📱 **Android sürümü:** [WatchToFriend](https://github.com/yigit/WatchToFriend)
 
 ## Özellikler
 
@@ -22,7 +22,7 @@ Arkadaşlarınızla aynı anda video izlemenizi sağlayan **Windows masaüstü**
 ## Kurulum (geliştirme)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/WatchToFriendDesktop.git
+git clone https://github.com/yigit/WatchToFriendDesktop.git
 cd WatchToFriendDesktop
 npm install
 npm run dev
