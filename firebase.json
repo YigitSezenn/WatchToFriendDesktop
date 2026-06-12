@@ -1,0 +1,51 @@
+{
+  "hosting": {
+    "public": "public",
+    "rewrites": [
+      { "source": "/join/**", "destination": "/join.html" }
+    ],
+    "ignore": [
+      "firebase.json",
+      "**/node_modules/**",
+      "**/*.exe"
+    ],
+    "headers": [
+      {
+        "source": "**/*.{png,jpg,ico,svg,css,js}",
+        "headers": [
+          { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
+        ]
+      },
+      {
+        "source": "**/*.html",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "downloads.json",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      },
+      {
+        "source": "/.well-known/assetlinks.json",
+        "headers": [
+          { "key": "Content-Type", "value": "application/json" }
+        ]
+      },
+      {
+        "source": "/downloads/**",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, max-age=0, must-revalidate" }
+        ]
+      }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  }
+}

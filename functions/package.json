@@ -1,0 +1,10 @@
+{
+  "name": "watchtofriend-functions",
+  "private": true,
+  "engines": { "node": "20" },
+  "main": "index.js",
+  "dependencies": {
+    "firebase-functions": "^4.9.0",
+    "firebase-admin": "^12.7.0"
+  }
+}

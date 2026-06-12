@@ -1,0 +1,15 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.watch.watchtofriend",
+      "sha256_cert_fingerprints": [
+        "39:6A:AF:8D:84:6A:D1:71:AB:D7:4B:55:15:2E:C0:C4:66:BE:80:8B:7E:CF:F4:38:0B:2E:47:0E:4D:BE:73:32",
+        "396AAF8D846AD171ABD74B555152EC0C466BE808B7ECFF4380B2E470E4DBE7332",
+        "87:9D:B6:6C:B0:B9:6A:BF:4C:C2:B6:46:FD:C9:03:D6:B8:B6:80:0E:B3:AE:D4:2A:24:F6:8B:F0:A3:28:92:8A",
+        "879DB66CB0B96ABF4CC2B646FDC903D6B8B6800EB3AED42A24F68BF0A328928A"
+      ]
+    }
+  }
+]

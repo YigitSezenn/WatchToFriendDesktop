@@ -1,0 +1,17 @@
+﻿{
+  "windows": {
+    "version": "1.3.0",
+    "url": "https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip",
+    "filename": "WatchToFriend-1.3.0.zip",
+    "setupExe": "WatchToFriend Setup 1.3.0.exe",
+    "host": "watchtofriend.web.app",
+    "updated": "2026-06-11"
+  },
+  "android": {
+    "version": "1.3.0",
+    "comingSoon": true,
+    "label": "Yakında Google Play'de",
+    "url": null,
+    "updated": "2026-06-11"
+  }
+}

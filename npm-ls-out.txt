@@ -1,0 +1,1041 @@
+﻿{
+  "version": "1.2.7",
+  "name": "watchtofriend-desktop",
+  "dependencies": {
+    "firebase": {
+      "version": "10.14.1",
+      "resolved": "https://registry.npmjs.org/firebase/-/firebase-10.14.1.tgz",
+      "overridden": false,
+      "dependencies": {
+        "@firebase/analytics-compat": {
+          "version": "0.2.14",
+          "resolved": "https://registry.npmjs.org/@firebase/analytics-compat/-/analytics-compat-0.2.14.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/analytics-types": {
+              "version": "0.8.2",
+              "resolved": "https://registry.npmjs.org/@firebase/analytics-types/-/analytics-types-0.8.2.tgz",
+              "overridden": false
+            },
+            "@firebase/analytics": {
+              "version": "0.10.8"
+            },
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9",
+              "resolved": "https://registry.npmjs.org/@firebase/component/-/component-0.6.9.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/util": {
+                  "version": "1.10.0"
+                },
+                "tslib": {
+                  "version": "2.8.1"
+                }
+              }
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1",
+              "resolved": "https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz",
+              "overridden": false
+            }
+          }
+        },
+        "@firebase/analytics": {
+          "version": "0.10.8",
+          "resolved": "https://registry.npmjs.org/@firebase/analytics/-/analytics-0.10.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/installations": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2",
+              "resolved": "https://registry.npmjs.org/@firebase/logger/-/logger-0.4.2.tgz",
+              "overridden": false,
+              "dependencies": {
+                "tslib": {
+                  "version": "2.8.1"
+                }
+              }
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/app-check-compat": {
+          "version": "0.3.15",
+          "resolved": "https://registry.npmjs.org/@firebase/app-check-compat/-/app-check-compat-0.3.15.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-check-types": {
+              "version": "0.5.2",
+              "resolved": "https://registry.npmjs.org/@firebase/app-check-types/-/app-check-types-0.5.2.tgz",
+              "overridden": false
+            },
+            "@firebase/app-check": {
+              "version": "0.8.8"
+            },
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/app-check": {
+          "version": "0.8.8",
+          "resolved": "https://registry.npmjs.org/@firebase/app-check/-/app-check-0.8.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/app-compat": {
+          "version": "0.2.43",
+          "resolved": "https://registry.npmjs.org/@firebase/app-compat/-/app-compat-0.2.43.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/app-types": {
+          "version": "0.9.2",
+          "resolved": "https://registry.npmjs.org/@firebase/app-types/-/app-types-0.9.2.tgz",
+          "overridden": false
+        },
+        "@firebase/app": {
+          "version": "0.10.13",
+          "resolved": "https://registry.npmjs.org/@firebase/app/-/app-0.10.13.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "idb": {
+              "version": "7.1.1",
+              "resolved": "https://registry.npmjs.org/idb/-/idb-7.1.1.tgz",
+              "overridden": false
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/auth-compat": {
+          "version": "0.5.14",
+          "resolved": "https://registry.npmjs.org/@firebase/auth-compat/-/auth-compat-0.5.14.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/auth-types": {
+              "version": "0.12.2",
+              "resolved": "https://registry.npmjs.org/@firebase/auth-types/-/auth-types-0.12.2.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app-types": {
+                  "version": "0.9.2"
+                },
+                "@firebase/util": {
+                  "version": "1.10.0"
+                }
+              }
+            },
+            "@firebase/auth": {
+              "version": "1.7.9",
+              "resolved": "https://registry.npmjs.org/@firebase/auth/-/auth-1.7.9.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app": {
+                  "version": "0.10.13"
+                },
+                "@firebase/component": {
+                  "version": "0.6.9"
+                },
+                "@firebase/logger": {
+                  "version": "0.4.2"
+                },
+                "@firebase/util": {
+                  "version": "1.10.0"
+                },
+                "@react-native-async-storage/async-storage": {},
+                "tslib": {
+                  "version": "2.8.1"
+                },
+                "undici": {
+                  "version": "6.19.7"
+                }
+              }
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            },
+            "undici": {
+              "version": "6.19.7",
+              "resolved": "https://registry.npmjs.org/undici/-/undici-6.19.7.tgz",
+              "overridden": false
+            }
+          }
+        },
+        "@firebase/auth": {
+          "version": "1.7.9",
+          "resolved": "https://registry.npmjs.org/@firebase/auth/-/auth-1.7.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "@react-native-async-storage/async-storage": {},
+            "tslib": {
+              "version": "2.8.1"
+            },
+            "undici": {
+              "version": "6.19.7"
+            }
+          }
+        },
+        "@firebase/data-connect": {
+          "version": "0.1.0",
+          "resolved": "https://registry.npmjs.org/@firebase/data-connect/-/data-connect-0.1.0.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/auth-interop-types": {
+              "version": "0.2.3",
+              "resolved": "https://registry.npmjs.org/@firebase/auth-interop-types/-/auth-interop-types-0.2.3.tgz",
+              "overridden": false
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/database-compat": {
+          "version": "1.0.8",
+          "resolved": "https://registry.npmjs.org/@firebase/database-compat/-/database-compat-1.0.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/database-types": {
+              "version": "1.0.5",
+              "resolved": "https://registry.npmjs.org/@firebase/database-types/-/database-types-1.0.5.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app-types": {
+                  "version": "0.9.2"
+                },
+                "@firebase/util": {
+                  "version": "1.10.0"
+                }
+              }
+            },
+            "@firebase/database": {
+              "version": "1.0.8"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/database": {
+          "version": "1.0.8",
+          "resolved": "https://registry.npmjs.org/@firebase/database/-/database-1.0.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-check-interop-types": {
+              "version": "0.3.2",
+              "resolved": "https://registry.npmjs.org/@firebase/app-check-interop-types/-/app-check-interop-types-0.3.2.tgz",
+              "overridden": false
+            },
+            "@firebase/auth-interop-types": {
+              "version": "0.2.3"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "faye-websocket": {
+              "version": "0.11.4",
+              "resolved": "https://registry.npmjs.org/faye-websocket/-/faye-websocket-0.11.4.tgz",
+              "overridden": false,
+              "dependencies": {
+                "websocket-driver": {
+                  "version": "0.7.4",
+                  "resolved": "https://registry.npmjs.org/websocket-driver/-/websocket-driver-0.7.4.tgz",
+                  "overridden": false,
+                  "dependencies": {
+                    "http-parser-js": {
+                      "version": "0.5.10",
+                      "resolved": "https://registry.npmjs.org/http-parser-js/-/http-parser-js-0.5.10.tgz",
+                      "overridden": false
+                    },
+                    "safe-buffer": {
+                      "version": "5.2.1",
+                      "resolved": "https://registry.npmjs.org/safe-buffer/-/safe-buffer-5.2.1.tgz",
+                      "overridden": false
+                    },
+                    "websocket-extensions": {
+                      "version": "0.1.4",
+                      "resolved": "https://registry.npmjs.org/websocket-extensions/-/websocket-extensions-0.1.4.tgz",
+                      "overridden": false
+                    }
+                  }
+                }
+              }
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/firestore-compat": {
+          "version": "0.3.38",
+          "resolved": "https://registry.npmjs.org/@firebase/firestore-compat/-/firestore-compat-0.3.38.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/firestore-types": {
+              "version": "3.0.2",
+              "resolved": "https://registry.npmjs.org/@firebase/firestore-types/-/firestore-types-3.0.2.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app-types": {
+                  "version": "0.9.2"
+                },
+                "@firebase/util": {
+                  "version": "1.10.0"
+                }
+              }
+            },
+            "@firebase/firestore": {
+              "version": "4.7.3"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/firestore": {
+          "version": "4.7.3",
+          "resolved": "https://registry.npmjs.org/@firebase/firestore/-/firestore-4.7.3.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "@firebase/webchannel-wrapper": {
+              "version": "1.0.1",
+              "resolved": "https://registry.npmjs.org/@firebase/webchannel-wrapper/-/webchannel-wrapper-1.0.1.tgz",
+              "overridden": false
+            },
+            "@grpc/grpc-js": {
+              "version": "1.9.16",
+              "resolved": "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-1.9.16.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@grpc/proto-loader": {
+                  "version": "0.7.15"
+                },
+                "@types/node": {
+                  "version": "20.19.41",
+                  "resolved": "https://registry.npmjs.org/@types/node/-/node-20.19.41.tgz",
+                  "overridden": false,
+                  "dependencies": {
+                    "undici-types": {
+                      "version": "6.21.0",
+                      "resolved": "https://registry.npmjs.org/undici-types/-/undici-types-6.21.0.tgz",
+                      "overridden": false
+                    }
+                  }
+                }
+              }
+            },
+            "@grpc/proto-loader": {
+              "version": "0.7.15",
+              "resolved": "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.7.15.tgz",
+              "overridden": false,
+              "dependencies": {
+                "lodash.camelcase": {
+                  "version": "4.3.0",
+                  "resolved": "https://registry.npmjs.org/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz",
+                  "overridden": false
+                },
+                "long": {
+                  "version": "5.3.2",
+                  "resolved": "https://registry.npmjs.org/long/-/long-5.3.2.tgz",
+                  "overridden": false
+                },
+                "protobufjs": {
+                  "version": "7.6.2",
+                  "resolved": "https://registry.npmjs.org/protobufjs/-/protobufjs-7.6.2.tgz",
+                  "overridden": false,
+                  "dependencies": {
+                    "@protobufjs/aspromise": {
+                      "version": "1.1.2",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/aspromise/-/aspromise-1.1.2.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/base64": {
+                      "version": "1.1.2",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/base64/-/base64-1.1.2.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/codegen": {
+                      "version": "2.0.5",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/codegen/-/codegen-2.0.5.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/eventemitter": {
+                      "version": "1.1.1",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/eventemitter/-/eventemitter-1.1.1.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/fetch": {
+                      "version": "1.1.1",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/fetch/-/fetch-1.1.1.tgz",
+                      "overridden": false,
+                      "dependencies": {
+                        "@protobufjs/aspromise": {
+                          "version": "1.1.2"
+                        }
+                      }
+                    },
+                    "@protobufjs/float": {
+                      "version": "1.0.2",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/float/-/float-1.0.2.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/inquire": {
+                      "version": "1.1.2",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/inquire/-/inquire-1.1.2.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/path": {
+                      "version": "1.1.2",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/path/-/path-1.1.2.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/pool": {
+                      "version": "1.1.0",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/pool/-/pool-1.1.0.tgz",
+                      "overridden": false
+                    },
+                    "@protobufjs/utf8": {
+                      "version": "1.1.1",
+                      "resolved": "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.1.tgz",
+                      "overridden": false
+                    },
+                    "@types/node": {
+                      "version": "20.19.41"
+                    },
+                    "long": {
+                      "version": "5.3.2"
+                    }
+                  }
+                },
+                "yargs": {
+                  "version": "17.7.2",
+                  "resolved": "https://registry.npmjs.org/yargs/-/yargs-17.7.2.tgz",
+                  "overridden": false,
+                  "dependencies": {
+                    "cliui": {
+                      "version": "8.0.1",
+                      "resolved": "https://registry.npmjs.org/cliui/-/cliui-8.0.1.tgz",
+                      "overridden": false,
+                      "dependencies": {
+                        "string-width": {
+                          "version": "4.2.3"
+                        },
+                        "strip-ansi": {
+                          "version": "6.0.1",
+                          "resolved": "https://registry.npmjs.org/strip-ansi/-/strip-ansi-6.0.1.tgz",
+                          "overridden": false,
+                          "dependencies": {
+                            "ansi-regex": {
+                              "version": "5.0.1",
+                              "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz",
+                              "overridden": false
+                            }
+                          }
+                        },
+                        "wrap-ansi": {
+                          "version": "7.0.0",
+                          "resolved": "https://registry.npmjs.org/wrap-ansi/-/wrap-ansi-7.0.0.tgz",
+                          "overridden": false,
+                          "dependencies": {
+                            "ansi-styles": {
+                              "version": "4.3.0",
+                              "resolved": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-4.3.0.tgz",
+                              "overridden": false,
+                              "dependencies": {
+                                "color-convert": {
+                                  "version": "2.0.1",
+                                  "resolved": "https://registry.npmjs.org/color-convert/-/color-convert-2.0.1.tgz",
+                                  "overridden": false,
+                                  "dependencies": {
+                                    "color-name": {
+                                      "version": "1.1.4",
+                                      "resolved": "https://registry.npmjs.org/color-name/-/color-name-1.1.4.tgz",
+                                      "overridden": false
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "string-width": {
+                              "version": "4.2.3"
+                            },
+                            "strip-ansi": {
+                              "version": "6.0.1"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "escalade": {
+                      "version": "3.2.0",
+                      "resolved": "https://registry.npmjs.org/escalade/-/escalade-3.2.0.tgz",
+                      "overridden": false
+                    },
+                    "get-caller-file": {
+                      "version": "2.0.5",
+                      "resolved": "https://registry.npmjs.org/get-caller-file/-/get-caller-file-2.0.5.tgz",
+                      "overridden": false
+                    },
+                    "require-directory": {
+                      "version": "2.1.1",
+                      "resolved": "https://registry.npmjs.org/require-directory/-/require-directory-2.1.1.tgz",
+                      "overridden": false
+                    },
+                    "string-width": {
+                      "version": "4.2.3",
+                      "resolved": "https://registry.npmjs.org/string-width/-/string-width-4.2.3.tgz",
+                      "overridden": false,
+                      "dependencies": {
+                        "emoji-regex": {
+                          "version": "8.0.0",
+                          "resolved": "https://registry.npmjs.org/emoji-regex/-/emoji-regex-8.0.0.tgz",
+                          "overridden": false
+                        },
+                        "is-fullwidth-code-point": {
+                          "version": "3.0.0",
+                          "resolved": "https://registry.npmjs.org/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz",
+                          "overridden": false
+                        },
+                        "strip-ansi": {
+                          "version": "6.0.1"
+                        }
+                      }
+                    },
+                    "y18n": {
+                      "version": "5.0.8",
+                      "resolved": "https://registry.npmjs.org/y18n/-/y18n-5.0.8.tgz",
+                      "overridden": false
+                    },
+                    "yargs-parser": {
+                      "version": "21.1.1",
+                      "resolved": "https://registry.npmjs.org/yargs-parser/-/yargs-parser-21.1.1.tgz",
+                      "overridden": false
+                    }
+                  }
+                }
+              }
+            },
+            "tslib": {
+              "version": "2.8.1"
+            },
+            "undici": {
+              "version": "6.19.7"
+            }
+          }
+        },
+        "@firebase/functions-compat": {
+          "version": "0.3.14",
+          "resolved": "https://registry.npmjs.org/@firebase/functions-compat/-/functions-compat-0.3.14.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/functions-types": {
+              "version": "0.6.2",
+              "resolved": "https://registry.npmjs.org/@firebase/functions-types/-/functions-types-0.6.2.tgz",
+              "overridden": false
+            },
+            "@firebase/functions": {
+              "version": "0.11.8"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/functions": {
+          "version": "0.11.8",
+          "resolved": "https://registry.npmjs.org/@firebase/functions/-/functions-0.11.8.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-check-interop-types": {
+              "version": "0.3.2"
+            },
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/auth-interop-types": {
+              "version": "0.2.3"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/messaging-interop-types": {
+              "version": "0.2.2",
+              "resolved": "https://registry.npmjs.org/@firebase/messaging-interop-types/-/messaging-interop-types-0.2.2.tgz",
+              "overridden": false
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            },
+            "undici": {
+              "version": "6.19.7"
+            }
+          }
+        },
+        "@firebase/installations-compat": {
+          "version": "0.2.9",
+          "resolved": "https://registry.npmjs.org/@firebase/installations-compat/-/installations-compat-0.2.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/installations-types": {
+              "version": "0.5.2",
+              "resolved": "https://registry.npmjs.org/@firebase/installations-types/-/installations-types-0.5.2.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app-types": {
+                  "version": "0.9.2"
+                }
+              }
+            },
+            "@firebase/installations": {
+              "version": "0.6.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/installations": {
+          "version": "0.6.9",
+          "resolved": "https://registry.npmjs.org/@firebase/installations/-/installations-0.6.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "idb": {
+              "version": "7.1.1"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/messaging-compat": {
+          "version": "0.2.12",
+          "resolved": "https://registry.npmjs.org/@firebase/messaging-compat/-/messaging-compat-0.2.12.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/messaging": {
+              "version": "0.12.12"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/messaging": {
+          "version": "0.12.12",
+          "resolved": "https://registry.npmjs.org/@firebase/messaging/-/messaging-0.12.12.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/installations": {
+              "version": "0.6.9"
+            },
+            "@firebase/messaging-interop-types": {
+              "version": "0.2.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "idb": {
+              "version": "7.1.1"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/performance-compat": {
+          "version": "0.2.9",
+          "resolved": "https://registry.npmjs.org/@firebase/performance-compat/-/performance-compat-0.2.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/performance-types": {
+              "version": "0.2.2",
+              "resolved": "https://registry.npmjs.org/@firebase/performance-types/-/performance-types-0.2.2.tgz",
+              "overridden": false
+            },
+            "@firebase/performance": {
+              "version": "0.6.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/performance": {
+          "version": "0.6.9",
+          "resolved": "https://registry.npmjs.org/@firebase/performance/-/performance-0.6.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/installations": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/remote-config-compat": {
+          "version": "0.2.9",
+          "resolved": "https://registry.npmjs.org/@firebase/remote-config-compat/-/remote-config-compat-0.2.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/remote-config-types": {
+              "version": "0.3.2",
+              "resolved": "https://registry.npmjs.org/@firebase/remote-config-types/-/remote-config-types-0.3.2.tgz",
+              "overridden": false
+            },
+            "@firebase/remote-config": {
+              "version": "0.4.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/remote-config": {
+          "version": "0.4.9",
+          "resolved": "https://registry.npmjs.org/@firebase/remote-config/-/remote-config-0.4.9.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/installations": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/storage-compat": {
+          "version": "0.3.12",
+          "resolved": "https://registry.npmjs.org/@firebase/storage-compat/-/storage-compat-0.3.12.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-compat": {
+              "version": "0.2.43"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/storage-types": {
+              "version": "0.8.2",
+              "resolved": "https://registry.npmjs.org/@firebase/storage-types/-/storage-types-0.8.2.tgz",
+              "overridden": false,
+              "dependencies": {
+                "@firebase/app-types": {
+                  "version": "0.9.2"
+                },
+                "@firebase/util": {
+                  "version": "1.10.0"
+                }
+              }
+            },
+            "@firebase/storage": {
+              "version": "0.13.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/storage": {
+          "version": "0.13.2",
+          "resolved": "https://registry.npmjs.org/@firebase/storage/-/storage-0.13.2.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            },
+            "undici": {
+              "version": "6.19.7"
+            }
+          }
+        },
+        "@firebase/util": {
+          "version": "1.10.0",
+          "resolved": "https://registry.npmjs.org/@firebase/util/-/util-1.10.0.tgz",
+          "overridden": false,
+          "dependencies": {
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        },
+        "@firebase/vertexai-preview": {
+          "version": "0.0.4",
+          "resolved": "https://registry.npmjs.org/@firebase/vertexai-preview/-/vertexai-preview-0.0.4.tgz",
+          "overridden": false,
+          "dependencies": {
+            "@firebase/app-check-interop-types": {
+              "version": "0.3.2"
+            },
+            "@firebase/app-types": {
+              "version": "0.9.2"
+            },
+            "@firebase/app": {
+              "version": "0.10.13"
+            },
+            "@firebase/component": {
+              "version": "0.6.9"
+            },
+            "@firebase/logger": {
+              "version": "0.4.2"
+            },
+            "@firebase/util": {
+              "version": "1.10.0"
+            },
+            "tslib": {
+              "version": "2.8.1"
+            }
+          }
+        }
+      }
+    }
+  }
+}

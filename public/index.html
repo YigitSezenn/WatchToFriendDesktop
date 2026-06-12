@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>WatchToFriend — Arkadaşlarınla Birlikte İzle</title>
+  <meta name="description" content="Arkadaşlarınla aynı anda film ve video izle. Sesli sohbet, ekran paylaşımı ve gerçek zamanlı chat ile birlikte izleme deneyimini yaşa. Tamamen ücretsiz." />
+  <!-- site-build: 2026-06-11-v4-icon -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <meta name="theme-color" content="#07070e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <link rel="icon" type="image/png" href="/brand-logo.png?v=5" />
+  <link rel="icon" type="image/x-icon" href="/favicon.ico?v=5" />
+  <link rel="apple-touch-icon" href="/brand-logo.png?v=5" />
+  <meta property="og:image" content="https://watchtofriend.web.app/brand-hero.png" />
+  <meta property="og:title" content="WatchToFriend — Arkadaşlarınla Birlikte İzle" />
+  <meta property="og:description" content="Arkadaşlarınla aynı anda film ve video izle. Sesli sohbet, ekran paylaşımı ve gerçek zamanlı chat." />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #07070e;
+      --bg2:      #0d0d1c;
+      --bg3:      #13132b;
+      --bg4:      #1a1a38;
+      --border:   rgba(255,255,255,0.07);
+      --border2:  rgba(124,92,252,0.25);
+      --accent:   #7c5cfc;
+      --accent2:  #a78bfa;
+      --accent3:  #c4b5fd;
+      --glow:     rgba(124,92,252,0.4);
+      --glow2:    rgba(124,92,252,0.15);
+      --text:     #f2f2ff;
+      --text2:    #9090b8;
+      --text3:    #5a5a80;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --orange:   #f97316;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      padding-top: calc(40px + env(safe-area-inset-top, 0px));
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .page-noise {
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      opacity: 0.06;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ─────────── ANNOUNCE BAR ─────────── */
+    .announce-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1100;
+      min-height: 40px;
+      padding: 6px 16px;
+      padding-top: calc(6px + env(safe-area-inset-top, 0px));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      text-align: center;
+      background: linear-gradient(90deg, rgba(124,92,252,0.2), rgba(91,33,182,0.15));
+      border-bottom: 1px solid rgba(124,92,252,0.25);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent3);
+    }
+    .announce-text { max-width: min(100%, 520px); line-height: 1.35; }
+    .announce-text-short { display: none; }
+    .announce-bar a {
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+      background: var(--accent);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      transition: background 0.15s;
+    }
+    .announce-bar a:hover { background: #6d4fe0; }
+    .announce-bar .new-pill {
+      background: rgba(34,197,94,0.2);
+      color: var(--green);
+      border: 1px solid rgba(34,197,94,0.35);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.04em;
+    }
+
+    ::selection { background: rgba(124,92,252,0.3); }
+
+    /* ─────────── NAV (floating pill — award-site style) ─────────── */
+    .nav-shell {
+      position: fixed;
+      top: calc(40px + env(safe-area-inset-top, 0px));
+      left: 0; right: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      padding: 10px clamp(12px, 3vw, 24px) 0;
+      pointer-events: none;
+    }
+    nav {
+      pointer-events: auto;
+      position: relative;
+      top: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 58px;
+      width: min(100%, 1120px);
+      background: rgba(13,13,28,0.82);
+      backdrop-filter: blur(24px) saturate(1.4);
+      -webkit-backdrop-filter: blur(24px) saturate(1.4);
+      border: 1px solid rgba(124,92,252,0.22);
+      border-radius: 18px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+      transition: background 0.3s, box-shadow 0.3s, border-color 0.3s;
+    }
+    nav.scrolled {
+      background: rgba(10,10,22,0.95);
+      border-color: rgba(124,92,252,0.35);
+      box-shadow: 0 20px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(124,92,252,0.12);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .nav-logo-svg {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      display: block;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    .nav-links a {
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+      padding: 6px 14px;
+      border-radius: 8px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--bg3); }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+
+    .nav-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--green);
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-weight: 600;
+    }
+    .nav-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 9px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      box-shadow: 0 0 20px rgba(124,92,252,0.3);
+    }
+    .btn-primary:hover {
+      background: #6d4fe0;
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px rgba(124,92,252,0.5);
+    }
+
+    /* Mobile nav */
+    .nav-toggle {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg3);
+      cursor: pointer;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 0;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 18px;
+      height: 2px;
+      background: var(--text);
+      border-radius: 2px;
+      transition: transform 0.25s, opacity 0.25s;
+    }
+    .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .mobile-menu {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      background: rgba(4,4,10,0.65);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+    .mobile-menu.open { opacity: 1; visibility: visible; }
+    .mobile-menu-panel {
+      position: absolute;
+      top: 0; right: 0;
+      width: min(100%, 320px);
+      height: 100%;
+      background: linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+      border-left: 1px solid var(--border);
+      padding: calc(112px + env(safe-area-inset-top, 0px)) 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transform: translateX(100%);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow-y: auto;
+    }
+    .mobile-menu.open .mobile-menu-panel { transform: none; }
+    .mobile-menu-panel a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 17px;
+      font-weight: 600;
+      padding: 14px 16px;
+      border-radius: 12px;
+      transition: background 0.15s;
+    }
+    .mobile-menu-panel a:hover { background: var(--bg3); }
+    .mobile-menu-cta {
+      margin-top: auto;
+      padding-top: 24px;
+    }
+    .mobile-menu-cta .btn-primary {
+      width: 100%;
+      justify-content: center;
+      padding: 14px 20px;
+      font-size: 15px;
+    }
+
+    /* Sticky mobile download dock */
+    .mobile-dock {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 980;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: rgba(7,7,14,0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      gap: 10px;
+      align-items: center;
+    }
+    .mobile-dock-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      text-decoration: none;
+      box-shadow: 0 4px 24px rgba(124,92,252,0.4);
+    }
+    .mobile-dock-meta {
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    /* Marquee — award-site motion strip */
+    .marquee-wrap {
+      overflow: hidden;
+      border-top: 1px solid rgba(124,92,252,0.25);
+      border-bottom: 1px solid rgba(124,92,252,0.25);
+      background: linear-gradient(90deg, rgba(124,92,252,0.12), rgba(91,33,182,0.08), rgba(124,92,252,0.12));
+      padding: 22px 0;
+      mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+    }
+    .marquee-track span {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+    .marquee-track span em {
+      font-style: normal;
+      color: var(--accent);
+      margin-right: 8px;
+    }
+    .marquee-track {
+      display: flex;
+      gap: 48px;
+      width: max-content;
+      animation: marquee 28s linear infinite;
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* Bento highlight cards */
+    .features-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(12, 1fr);
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .feature-card { grid-column: span 4; }
+    .feature-card.highlight { grid-column: span 8; }
+    @media (min-width: 901px) {
+      .features-grid .feature-card:nth-child(4),
+      .features-grid .feature-card:nth-child(5),
+      .features-grid .feature-card:nth-child(6) { grid-column: span 4; }
+    }
+
+    /* Mobile hero cards */
+    .mobile-showcase {
+      display: none;
+      width: 100%;
+      max-width: 360px;
+      position: relative;
+      z-index: 1;
+    }
+    .mobile-showcase-card {
+      background: linear-gradient(160deg, var(--bg3), var(--bg2));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .mobile-showcase-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .mobile-showcase-top img { border-radius: 12px; }
+    .mobile-showcase-top strong { display: block; font-size: 14px; }
+    .mobile-showcase-top small { color: var(--text3); font-size: 12px; }
+    .mobile-showcase-screen {
+      aspect-ratio: 16/10;
+      border-radius: 14px;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    .mobile-showcase-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mobile-showcase-pills span {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 20px;
+      background: rgba(124,92,252,0.12);
+      border: 1px solid rgba(124,92,252,0.25);
+      color: var(--accent3);
+    }
+
+    /* ─────────── HERO ─────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: calc(120px + env(safe-area-inset-top, 0px)) 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-orbs {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.55;
+      animation: orbFloat 14s ease-in-out infinite;
+    }
+    .hero-orb--1 {
+      width: 520px; height: 520px;
+      background: #7c5cfc;
+      top: -8%; left: -6%;
+    }
+    .hero-orb--2 {
+      width: 420px; height: 420px;
+      background: #5b21b6;
+      bottom: 5%; right: -4%;
+      animation-delay: -5s;
+    }
+    .hero-orb--3 {
+      width: 280px; height: 280px;
+      background: #a78bfa;
+      top: 35%; right: 28%;
+      opacity: 0.35;
+      animation-delay: -9s;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(24px, -20px) scale(1.06); }
+    }
+
+    .hero-inner {
+      width: min(100%, 1180px);
+      display: grid;
+      grid-template-columns: 1fr 1.05fr;
+      gap: clamp(32px, 5vw, 64px);
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-copy { text-align: left; }
+    .hero-logo {
+      width: 72px; height: 72px;
+      border-radius: 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 40px rgba(124,92,252,0.45);
+      animation: fadeInUp 0.6s ease both;
+    }
+    .hero-visual { position: relative; }
+
+    .hero-brand-glow {
+      position: absolute;
+      inset: -8% -12% auto -12%;
+      max-width: 520px;
+      width: 110%;
+      margin: 0 auto;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0.92;
+      pointer-events: none;
+      filter: drop-shadow(0 24px 80px rgba(124,92,252,0.35));
+      animation: fadeInUp 0.9s ease 0.2s both;
+      z-index: 0;
+    }
+
+    .hero-glow, .hero-glow2 { display: none; }
+
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124,92,252,0.14);
+      border: 1px solid rgba(124,92,252,0.35);
+      border-radius: 24px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent3);
+      margin-bottom: 20px;
+      letter-spacing: 0.01em;
+      animation: fadeInDown 0.6s ease both;
+    }
+    .hero-tag span.dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .hero h1 {
+      font-family: 'Syne', 'Inter', sans-serif;
+      font-size: clamp(2.6rem, 6.5vw, 5.2rem);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.7s ease 0.1s both;
+    }
+    .hero h1 .line2 {
+      display: block;
+      background: linear-gradient(130deg, #fff 0%, var(--accent2) 50%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--text2);
+      max-width: 520px;
+      margin-bottom: 32px;
+      line-height: 1.75;
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.7s ease 0.2s both;
+    }
+
+    .hero-visual .hero-mockup {
+      width: 100%;
+      max-width: none;
+      animation: fadeInUp 0.9s ease 0.35s both;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-visual .mobile-showcase { display: none; }
+
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 0;
+      animation: fadeInUp 0.7s ease 0.3s both;
+    }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, #5b21b6 100%);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 30px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 40px rgba(124,92,252,0.45), 0 0 0 1px rgba(124,92,252,0.3);
+      transition: all 0.25s;
+    }
+    .btn-download:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 56px rgba(124,92,252,0.55), 0 0 0 1px rgba(124,92,252,0.5);
+    }
+    .btn-download .ico { font-size: 22px; }
+    .btn-download small { display: block; font-size: 11px; font-weight: 400; opacity: 0.75; }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: transparent;
+      color: var(--text2);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 16px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
+
+    /* Hero mockup */
+    .hero-mockup {
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow:
+        0 50px 130px rgba(0,0,0,0.9),
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 0 80px rgba(124,92,252,0.12);
+      position: relative;
+      z-index: 1;
+      animation: fadeInUp 0.9s ease 0.4s both;
+    }
+    .mockup-titlebar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 13px 18px;
+    }
+    .dot-r { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+    .dot-y { width: 12px; height: 12px; border-radius: 50%; background: #febc2e; }
+    .dot-g { width: 12px; height: 12px; border-radius: 50%; background: #28c840; }
+    .mockup-title { color: var(--text3); font-size: 12px; margin-left: 10px; }
+    .mockup-body {
+      background: var(--bg2);
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      height: 460px;
+    }
+    .mockup-main { display: flex; flex-direction: column; }
+    .mockup-video {
+      flex: 1;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .mockup-video-shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(124,92,252,0.03) 0%, transparent 60%);
+    }
+    .mockup-play {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: rgba(124,92,252,0.2);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      position: relative;
+      z-index: 1;
+    }
+    .mockup-playing-label {
+      position: absolute;
+      bottom: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: var(--text2);
+      background: rgba(0,0,0,0.7);
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .mockup-controls {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 16px;
+      background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    }
+    .mockup-progress { height: 3px; background: rgba(255,255,255,0.15); border-radius: 3px; margin-bottom: 10px; }
+    .mockup-progress-fill { height: 100%; width: 38%; background: var(--accent); border-radius: 3px; }
+    .mockup-ctrl-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text2);
+      font-size: 11px;
+    }
+    .mockup-voice-bar {
+      background: rgba(0,0,0,0.5);
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      align-items: center;
+    }
+    .vbtn {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 2px;
+      font-size: 9px; color: var(--text2);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 5px 10px;
+    }
+    .vbtn.active { background: rgba(124,92,252,0.15); border-color: var(--accent); color: var(--accent3); }
+    .voice-speaking { margin-left: auto; font-size: 11px; color: var(--green); display: flex; align-items: center; gap: 5px; }
+    .voice-speaking::before { content:''; width:6px; height:6px; background:var(--green); border-radius:50%; animation:pulse 1.5s infinite; }
+
+    .mockup-sidebar {
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-hdr {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+    }
+    .sidebar-msgs {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow: hidden;
+    }
+    .msg { display: flex; flex-direction: column; gap: 3px; }
+    .msg.me { align-items: flex-end; }
+    .msg-name { font-size: 10px; color: var(--text3); padding: 0 4px; }
+    .msg-bubble { font-size: 12px; padding: 7px 11px; border-radius: 14px; max-width: 170px; }
+    .msg.me .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+    .msg.other .msg-bubble { background: var(--bg3); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .sidebar-input {
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 6px;
+      padding: 8px;
+    }
+    .sidebar-input-box {
+      flex: 1;
+      background: var(--bg3);
+      border-radius: 18px;
+      font-size: 11px;
+      color: var(--text3);
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+    }
+    .sidebar-send {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    /* ─────────── STATS ─────────── */
+    .stats-bar {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 32px 60px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #fff, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-label { font-size: 13px; color: var(--text2); margin-top: 4px; font-weight: 500; }
+
+    /* ─────────── FEATURES ─────────── */
+    .features {
+      padding: 120px 60px;
+      position: relative;
+    }
+    .features::before {
+      content: '';
+      position: absolute;
+      top: 40%;
+      left: -200px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .section-eyebrow {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Syne', 'Inter', sans-serif;
+      text-align: center;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 900;
+      letter-spacing: -0.025em;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--text2);
+      font-size: 1.05rem;
+      max-width: 520px;
+      margin: 0 auto 72px;
+      line-height: 1.7;
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(124,92,252,0.4), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .feature-card:hover {
+      border-color: rgba(124,92,252,0.35);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(124,92,252,0.08);
+    }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: var(--bg4);
+      border: 1px solid var(--border2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .feature-title {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
+    }
+    .feature-desc {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.75;
+    }
+    .feature-badge {
+      display: inline-block;
+      margin-top: 14px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(124,92,252,0.1);
+      border: 1px solid rgba(124,92,252,0.2);
+      border-radius: 6px;
+      padding: 3px 10px;
+    }
+
+    /* Feature highlight card */
+    .feature-card.highlight {
+      background: linear-gradient(135deg, rgba(124,92,252,0.12) 0%, rgba(124,92,252,0.04) 100%);
+      border-color: rgba(124,92,252,0.3);
+    }
+
+    /* ─────────── HOW IT WORKS ─────────── */
+    .how {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 120px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .how::after {
+      content: '';
+      position: absolute;
+      top: 0; right: -100px;
+      width: 400px; height: 400px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .steps-row {
+      display: flex;
+      gap: 0;
+      max-width: 860px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .steps-row::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.66% + 4px);
+      right: calc(16.66% + 4px);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0.25;
+    }
+
+    .step {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0 24px;
+      gap: 18px;
+    }
+    .step-circle {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--bg);
+      border: 2px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--accent2);
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 20px rgba(124,92,252,0.25);
+    }
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .step-desc { color: var(--text2); font-size: 14px; line-height: 1.6; }
+
+    /* ─────────── PLATFORMS ─────────── */
+    .platforms {
+      padding: 120px 60px;
+      position: relative;
+    }
+
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    .platform-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .platform-card:hover { border-color: var(--border2); transform: translateY(-4px); }
+    .platform-icon { font-size: 40px; }
+    .platform-name { font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+    .platform-desc { color: var(--text2); font-size: 14px; line-height: 1.7; }
+    .platform-features {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .platform-feat {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text2);
+    }
+    .platform-feat::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .platform-cta { margin-top: 8px; }
+
+    .btn-windows {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, var(--accent), #5b21b6);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 13px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(124,92,252,0.3);
+      transition: all 0.2s;
+    }
+    .btn-windows:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(124,92,252,0.45); }
+
+    .btn-android {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg4);
+      color: var(--text2);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 13px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+    .btn-android.coming,
+    .btn-outline.coming {
+      opacity: 0.85;
+      cursor: default;
+      pointer-events: none;
+      user-select: none;
+    }
+    .btn-android:hover:not(.coming) { border-color: var(--border2); color: var(--text); }
+    .coming-soon-note {
+      color: var(--text3);
+      font-size: 12px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* ─────────── PRICING / FREE ─────────── */
+    .free-section {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 100px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .free-section::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px; height: 500px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .free-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.25);
+      border-radius: 24px;
+      padding: 7px 18px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--green);
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .free-title {
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+    .free-title .highlight {
+      background: linear-gradient(130deg, var(--green), #4ade80);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .free-sub {
+      color: var(--text2);
+      font-size: 1.1rem;
+      max-width: 480px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+
+    .free-features {
+      display: grid;
+      grid-template-columns: repeat(3, auto);
+      gap: 16px 40px;
+      justify-content: center;
+      margin-bottom: 48px;
+      position: relative;
+      z-index: 1;
+    }
+    .free-feature {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--text2);
+    }
+    /* ─────────── CHANGELOG ─────────── */
+    .changelog {
+      padding: 100px 60px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .changelog-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-top: 32px;
+    }
+    .changelog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .changelog-version {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .changelog-date {
+      font-size: 13px;
+      color: var(--text3);
+      font-weight: 500;
+    }
+    .changelog-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .changelog-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+    .changelog-list li::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .changelog-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+    .tag-win { background: rgba(59,130,246,0.15); color: #60a5fa; }
+    .tag-android { background: rgba(34,197,94,0.15); color: var(--green); }
+    .tag-both { background: rgba(124,92,252,0.15); color: var(--accent2); }
+
+    /* ─────────── FAQ ─────────── */
+    .faq {
+      padding: 100px 60px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .faq-list { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+    .faq-item {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .faq-item:hover { border-color: var(--border2); }
+    .faq-item.open { border-color: rgba(124,92,252,0.35); }
+    .faq-q {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+    }
+    .faq-q span { color: var(--text3); font-size: 20px; transition: transform 0.2s; }
+    .faq-item.open .faq-q span { transform: rotate(45deg); color: var(--accent2); }
+    .faq-a {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s;
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.65;
+      padding: 0 24px;
+    }
+    .faq-item.open .faq-a { max-height: 200px; padding: 0 24px 20px; }
+
+    .free-feature .check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: rgba(34,197,94,0.15);
+      border: 1px solid rgba(34,197,94,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      color: var(--green);
+      flex-shrink: 0;
+    }
+
+    /* ─────────── DOWNLOAD CTA ─────────── */
+    .download-hero {
+      padding: 120px 60px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .download-hero::before {
+      content: '';
+      position: absolute;
+      bottom: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(124,92,252,0.14) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .download-hero h2 {
+      font-family: 'Syne', 'Inter', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 900;
+      letter-spacing: -0.035em;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+    .download-hero p {
+      color: var(--text2);
+      font-size: 1.1rem;
+      margin-bottom: 44px;
+      max-width: 440px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+      z-index: 1;
+    }
+    .dl-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: var(--text3);
+      position: relative;
+      z-index: 1;
+    }
+    .dl-meta span { display: flex; align-items: center; gap: 5px; color: var(--text2); }
+    .dl-meta .dot-sep { opacity: 0.4; }
+
+    /* ─────────── FOOTER ─────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--bg2);
+      padding: 48px 60px 32px;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 40px;
+    }
+    .footer-brand { }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      margin-bottom: 12px;
+    }
+    .footer-logo-icon {
+      width: 28px; height: 28px;
+      border-radius: 7px;
+      object-fit: cover;
+    }
+    .footer-tagline { color: var(--text2); font-size: 13px; line-height: 1.7; max-width: 260px; }
+
+    .footer-col h4 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text3);
+      margin-bottom: 16px;
+    }
+    .footer-col a {
+      display: block;
+      color: var(--text2);
+      font-size: 14px;
+      text-decoration: none;
+      margin-bottom: 10px;
+      transition: color 0.15s;
+    }
+    .footer-col a:hover { color: var(--text); }
+
+    .footer-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text3);
+    }
+    .footer-bottom a { color: var(--text3); text-decoration: none; }
+    .footer-bottom a:hover { color: var(--text2); }
+
+    /* ─────────── SCROLL REVEAL ─────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─────────── ANIMATIONS ─────────── */
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+
+    /* ─────────── RESPONSIVE ─────────── */
+    @media (max-width: 900px) {
+      .nav-links, .nav-right .nav-badge:first-of-type { display: none; }
+      .nav-toggle { display: flex; }
+      .nav-right .btn-primary { display: none; }
+      .mobile-dock { display: flex; flex-direction: column; }
+      body { padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+      .hero-inner { grid-template-columns: 1fr; text-align: center; }
+      .hero-copy { text-align: center; }
+      .hero-logo { margin-left: auto; margin-right: auto; }
+      .hero-ctas { justify-content: center; }
+      .hero-visual .hero-mockup { display: none; }
+      .hero-visual .mobile-showcase { display: block; margin: 0 auto; }
+      .announce-text-long { display: none; }
+      .announce-text-short { display: inline; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); padding: 28px 20px; gap: 24px; }
+      .features { padding: 72px 20px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feature-card, .feature-card.highlight { grid-column: span 1; }
+      .how { padding: 72px 20px; }
+      .steps-row { flex-direction: column; gap: 36px; }
+      .steps-row::before { display: none; }
+      .platforms { padding: 72px 20px; }
+      .platforms-grid { grid-template-columns: 1fr; }
+      .faq { padding: 72px 20px; }
+      .changelog { padding: 72px 20px; }
+      .changelog-card { padding: 20px; }
+      .free-section { padding: 72px 20px; }
+      .free-features { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .download-hero { padding: 72px 20px 100px; }
+      .download-hero .btn-outline { display: none; }
+      .dl-meta { flex-direction: column; gap: 8px; }
+      .dl-meta .dot-sep { display: none; }
+      footer { padding: 40px 20px 100px; }
+      .footer-top { grid-template-columns: 1fr; gap: 28px; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+      .section-sub { margin-bottom: 48px; }
+      .hero { padding: 88px 20px 48px; min-height: auto; }
+      .hero-ctas { margin-bottom: 28px; }
+      .btn-download, .btn-outline { width: 100%; max-width: 340px; justify-content: center; }
+    }
+    @media (max-width: 600px) {
+      .nav-logo span.brand-name { display: none; }
+      .hero h1 { font-size: 2.15rem; }
+      .hero-sub { font-size: 0.95rem; margin-bottom: 32px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; gap: 16px; }
+      .stat-num { font-size: 1.5rem; }
+      .free-features { grid-template-columns: 1fr; }
+      .marquee-track { animation-duration: 24s; }
+      .faq-item.open .faq-a { max-height: 320px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .marquee-track { animation: none; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-noise" aria-hidden="true"></div>
+
+<!-- ═══════════════ ANNOUNCE ═══════════════ -->
+<div class="announce-bar">
+  <span class="new-pill">YENİ</span>
+  <span class="announce-text announce-text-long">✨ Yeni ikon + v1.3.0 — mor sohbet balonu logosu her yerde</span>
+  <span class="announce-text announce-text-short">✨ Yeni ikon · v1.3.0</span>
+  <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" download>İndir →</a>
+</div>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<div class="nav-shell">
+<nav>
+  <a href="#" class="nav-logo">
+    <img src="/brand-logo.png?v=5" alt="" class="nav-logo-svg" width="32" height="32" />
+    <span class="brand-name">WatchToFriend</span>
+  </a>
+  <div class="nav-links">
+    <a href="#features">Özellikler</a>
+    <a href="#how">Nasıl Çalışır</a>
+    <a href="#platforms">Platformlar</a>
+    <a href="#faq">SSS</a>
+    <a href="#changelog">Sürüm Notları</a>
+    <a href="#download">İndir</a>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge" style="color:var(--accent2);background:rgba(124,92,252,0.1);border-color:rgba(124,92,252,0.25);">v1.3.0</div>
+    <div class="nav-badge">Ücretsiz</div>
+    <a href="#download" class="btn-primary">
+      ⬇ İndir
+    </a>
+    <button type="button" class="nav-toggle" aria-label="Menüyü aç" aria-expanded="false" aria-controls="mobileMenu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+</div>
+
+<div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+  <div class="mobile-menu-panel">
+    <a href="#features">Özellikler</a>
+    <a href="#how">Nasıl Çalışır</a>
+    <a href="#platforms">Platformlar</a>
+    <a href="#faq">SSS</a>
+    <a href="#changelog">Sürüm Notları</a>
+    <a href="#download">İndir</a>
+    <div class="mobile-menu-cta">
+      <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" class="btn-primary" download>⬇ Windows İndir · v1.3.0</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-orbs" aria-hidden="true">
+    <div class="hero-orb hero-orb--1"></div>
+    <div class="hero-orb hero-orb--2"></div>
+    <div class="hero-orb hero-orb--3"></div>
+  </div>
+
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <img src="/brand-logo.png?v=5" alt="WatchToFriend" class="hero-logo" width="72" height="72" />
+      <div class="hero-tag">
+        <span class="dot"></span>
+        Windows &amp; Android · Tamamen Ücretsiz
+      </div>
+      <h1>
+        Videoları Arkadaşlarınla<br>
+        <span class="line2">Birlikte İzle</span>
+      </h1>
+      <p class="hero-sub">
+        YouTube, Netflix, film siteleri — istediğin videoyu gerçek zamanlı senkronize et.
+        Sesli sohbet et, ekranını paylaş, beraber eğlen.
+      </p>
+      <div class="hero-ctas">
+        <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" class="btn-download" download>
+          <span class="ico">⬇</span>
+          <span>
+            Windows için İndir
+            <small>Ücretsiz · v1.3.0 · WatchToFriend-1.3.0.zip (~90 MB)</small>
+          </span>
+        </a>
+        <a href="#features" class="btn-outline">
+          Özellikleri Keşfet →
+        </a>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <img src="/brand-hero.png?v=5" alt="" class="hero-brand-glow" width="480" height="260" />
+      <div class="mobile-showcase">
+        <div class="mobile-showcase-card">
+          <div class="mobile-showcase-top">
+            <img src="/brand-logo.png?v=5" alt="" width="40" height="40" />
+            <div>
+              <strong>WatchToFriend</strong>
+              <small>Oda AB4K92 · 3 kişi online</small>
+            </div>
+          </div>
+          <div class="mobile-showcase-screen">▶</div>
+          <div class="mobile-showcase-pills">
+            <span>🎙️ Sesli sohbet</span>
+            <span>💬 Chat</span>
+            <span>📺 Senkron</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-mockup">
+        <div class="mockup-titlebar">
+          <div class="dot-r"></div>
+          <div class="dot-y"></div>
+          <div class="dot-g"></div>
+          <span class="mockup-title">WatchToFriend — Oda: AB4K92 · 3 üye online</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-main">
+            <div class="mockup-video">
+              <div class="mockup-video-shimmer"></div>
+              <div class="mockup-play">▶</div>
+              <div class="mockup-playing-label">🔴 Canlı senkron · 2 arkadaş izliyor</div>
+              <div class="mockup-controls">
+                <div class="mockup-progress"><div class="mockup-progress-fill"></div></div>
+                <div class="mockup-ctrl-row">
+                  <span>▶</span>
+                  <span>24:18 / 1:52:30</span>
+                  <span style="margin-left:auto;">🔊 HD</span>
+                </div>
+              </div>
+            </div>
+            <div class="mockup-voice-bar">
+              <div class="vbtn active">🎙️<span>Mikrofon</span></div>
+              <div class="vbtn">📺<span>Ekran Paylaş</span></div>
+              <div class="vbtn">👥<span>3 Üye</span></div>
+              <div class="voice-speaking">Ahmet konuşuyor</div>
+            </div>
+          </div>
+          <div class="mockup-sidebar">
+            <div class="sidebar-hdr">💬 Sohbet</div>
+            <div class="sidebar-msgs">
+              <div class="msg other">
+                <div class="msg-name">Ahmet</div>
+                <div class="msg-bubble">bu sahne çok iyiydi 😂</div>
+              </div>
+              <div class="msg me">
+                <div class="msg-bubble">hahaha keşke daha önce izleseydik</div>
+              </div>
+              <div class="msg other">
+                <div class="msg-name">Merve</div>
+                <div class="msg-bubble">az kaldı sona — spoiler verme! 👀</div>
+              </div>
+            </div>
+            <div class="sidebar-input">
+              <div class="sidebar-input-box">Mesaj yaz...</div>
+              <div class="sidebar-send">➤</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ STATS ═══════════════ -->
+<div class="stats-bar reveal">
+  <div class="stat-item">
+    <div class="stat-num">%100</div>
+    <div class="stat-label">Ücretsiz — Sonsuza Kadar</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">&lt;1s</div>
+    <div class="stat-label">Senkronizasyon Gecikmesi</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">WebRTC</div>
+    <div class="stat-label">P2P Sesli Sohbet</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-num">2</div>
+    <div class="stat-label">Platform (Windows &amp; Android)</div>
+  </div>
+</div>
+
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee-track">
+    <span><em>●</em> Gerçek zamanlı senkron</span>
+    <span><em>●</em> Sesli sohbet</span>
+    <span><em>●</em> Ekran paylaşımı</span>
+    <span><em>●</em> YouTube araması</span>
+    <span><em>●</em> Oda planlama</span>
+    <span><em>●</em> %100 ücretsiz</span>
+    <span><em>●</em> Windows &amp; Android</span>
+    <span><em>●</em> WebRTC P2P</span>
+    <span><em>●</em> Gerçek zamanlı senkron</span>
+    <span><em>●</em> Sesli sohbet</span>
+    <span><em>●</em> Ekran paylaşımı</span>
+    <span><em>●</em> YouTube araması</span>
+    <span><em>●</em> Oda planlama</span>
+    <span><em>●</em> %100 ücretsiz</span>
+    <span><em>●</em> Windows &amp; Android</span>
+    <span><em>●</em> WebRTC P2P</span>
+  </div>
+</div>
+
+<!-- ═══════════════ FEATURES ═══════════════ -->
+<section class="features" id="features">
+  <div class="section-eyebrow reveal">Özellikler</div>
+  <h2 class="section-title reveal">İhtiyacın olan her şey</h2>
+  <p class="section-sub reveal">Arkadaşlarınla video izlemeyi gerçek bir deneyime dönüştüren özellikler.</p>
+
+  <div class="features-grid">
+    <div class="feature-card highlight reveal">
+      <div class="feature-icon-wrap">🎬</div>
+      <div class="feature-title">Gerçek Zamanlı Senkron</div>
+      <div class="feature-desc">Host oynat, durdur, ileri sar — odadaki herkes anında senkronize olur. YouTube, Netflix ve tüm film sitelerini destekler.</div>
+      <span class="feature-badge">En Popüler</span>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">🎙️</div>
+      <div class="feature-title">Sesli Sohbet</div>
+      <div class="feature-desc">Gerçek zamanlı, düşük gecikmeli sesli sohbet. Ücretsiz WebRTC teknolojisi — ekstra sunucu yok, gizli ücret yok.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">🖥️</div>
+      <div class="feature-title">Ekran Paylaşımı</div>
+      <div class="feature-desc">Netflix veya herhangi bir platformu paylaş. Tüm ekranı ya da sadece bir tarayıcı sekmesini seçebilirsin.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">💬</div>
+      <div class="feature-title">Gerçek Zamanlı Chat</div>
+      <div class="feature-desc">İzlerken mesaj at, emoji reaksiyon ver. WhatsApp tarzı baloncuklar ile rahat bir sohbet deneyimi.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">🔑</div>
+      <div class="feature-title">Anlık Oda Kodu</div>
+      <div class="feature-desc">6 haneli oda kodunu arkadaşına at, saniyeler içinde aynı odada olun. Kayıt zorunlu değil.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">👥</div>
+      <div class="feature-title">Arkadaş Listesi</div>
+      <div class="feature-desc">Arkadaşlarını ekle, davet gönder, odaya tek tıkla çağır. Her şey uygulama içinde.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">📅</div>
+      <div class="feature-title">Oda Planlama</div>
+      <div class="feature-desc">İzleme partisini önceden planla. Belirlediğin saatte oda listesinde geri sayım görünür.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">🚫</div>
+      <div class="feature-title">Engelleme &amp; Güvenlik</div>
+      <div class="feature-desc">Rahatsız edici kullanıcıları engelle. Engellenenlerin mesajları odada görünmez.</div>
+    </div>
+    <div class="feature-card reveal">
+      <div class="feature-icon-wrap">⌨️</div>
+      <div class="feature-title">Klavye Kısayolları</div>
+      <div class="feature-desc">Windows'ta <strong>M</strong> ile sustur, <strong>V</strong> ile sese katıl veya ayrıl. Hızlı kontrol.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+<section class="how" id="how">
+  <div class="section-eyebrow reveal">Nasıl Çalışır</div>
+  <h2 class="section-title reveal">3 adımda başla</h2>
+  <p class="section-sub reveal">Karmaşık kurulum yok. İndir, aç, izle.</p>
+
+  <div class="steps-row">
+    <div class="step reveal">
+      <div class="step-circle">1</div>
+      <div class="step-title">İndir ve Kur</div>
+      <div class="step-desc">Windows zip'ini indir → aç → <strong>WatchToFriend Setup 1.3.0.exe</strong>'ye çift tıkla. Android sürümü yakında Google Play'de.</div>
+    </div>
+    <div class="step reveal">
+      <div class="step-circle">2</div>
+      <div class="step-title">Oda Oluştur</div>
+      <div class="step-desc">Hesabını oluştur, oda yarat, video linkini gir ve 6 haneli kodu arkadaşlarına gönder.</div>
+    </div>
+    <div class="step reveal">
+      <div class="step-circle">3</div>
+      <div class="step-title">Birlikte İzle</div>
+      <div class="step-desc">Sesli sohbeti aç, video sync'i başlat ve keyfini çıkar.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PLATFORMS ═══════════════ -->
+<section class="platforms" id="platforms">
+  <div class="section-eyebrow reveal">Platformlar</div>
+  <h2 class="section-title reveal">Windows ve Android</h2>
+  <p class="section-sub reveal">Her platformda tam deneyim. Farklı cihazlardan aynı odaya bağlan.</p>
+
+  <div class="platforms-grid">
+    <!-- Windows -->
+    <div class="platform-card reveal">
+      <div class="platform-icon">💻</div>
+      <div class="platform-name">Windows</div>
+      <div class="platform-desc">Güçlü masaüstü uygulaması. Ekran paylaşımı, ses ve tüm özellikler Windows'ta kusursuz çalışır.</div>
+      <div class="platform-features">
+        <div class="platform-feat">Tüm ekran veya pencere paylaşımı</div>
+        <div class="platform-feat">Sistem sesi paylaşımı</div>
+        <div class="platform-feat">Sesli sohbet &amp; chat</div>
+        <div class="platform-feat">Windows 10/11 destekli</div>
+      </div>
+      <div class="platform-cta">
+        <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" class="btn-windows" download>
+          ⬇ Kur · v1.3.0
+        </a>
+      </div>
+    </div>
+    <!-- Android -->
+    <div class="platform-card reveal">
+      <div class="platform-icon">📱</div>
+      <div class="platform-name">Android</div>
+      <div class="platform-desc">Cebinden katıl. Arkadaşlarının paylaştığı ekranı izle, sesli sohbet et, mesaj at.</div>
+      <div class="platform-features">
+        <div class="platform-feat">Ekran izleme (yüksek kalite)</div>
+        <div class="platform-feat">Sesli sohbet &amp; chat</div>
+        <div class="platform-feat">Arkadaş listesi &amp; davetler</div>
+        <div class="platform-feat">Tam ekran mod</div>
+      </div>
+      <div class="platform-cta">
+        <span class="btn-android coming">▶ Yakında Google Play'de</span>
+        <p class="coming-soon-note">Uygulama yayınlanınca buraya link ekleyeceğiz.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ CHANGELOG ═══════════════ -->
+<section class="changelog" id="changelog">
+  <div class="section-eyebrow reveal">Güncellemeler</div>
+  <h2 class="section-title reveal">Sürüm Notları</h2>
+  <p class="section-sub reveal">En güncel sürüm v1.3.0 — Windows ve Android. Profilde sürüm numarasını kontrol edebilirsin.</p>
+
+  <div class="changelog-card reveal" style="border-color:rgba(124,92,252,0.35);box-shadow:0 0 40px rgba(124,92,252,0.08);">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.3.0</span>
+      <span class="changelog-date">12 Haziran 2026 · Windows &amp; Android</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Yeni marka ikonu — mor sohbet balonu, göz detaylı modern tasarım</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Masaüstü kısayolu, görev çubuğu ve kurulum sihirbazı yeni ikonla güncellendi</li>
+      <li><span class="changelog-tag tag-android">Android</span> Uygulama ve launcher ikonu yeni marka ile güncellendi</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Site favicon, nav ve hero görseli yeni ikonla yenilendi</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.94;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.8</span>
+      <span class="changelog-date">12 Haziran 2026 · Windows &amp; Android</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Sesli sohbette kullanıcı adları ve profil fotoğrafları görünür</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Video değiştirme ekranına YouTube araması eklendi (Android ile aynı deneyim)</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Sistem teması ve dil ayarı artık cihaz ayarlarını doğru takip ediyor</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Karanlık modda YouTube arama kutusu ve modal renkleri düzeltildi</li>
+      <li><span class="changelog-tag tag-android">Android</span> Sesli sohbete katılırken oluşan çökme (SIGBUS) giderildi</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Gömülemeyen YouTube videoları arama sonuçlarından filtreleniyor; hata durumunda YouTube'da aç seçeneği</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.92;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.7</span>
+      <span class="changelog-date">Haziran 2026 · Windows &amp; Android</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Discord tarzı arayüz — ana ekran ve oda görünümü yenilendi</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Oda ekranı baştan düzenlendi — menü ve üst çubuk her zaman tıklanabilir</li>
+      <li><span class="changelog-tag tag-android">Android</span> Oda üst çubuğu, banner yerleşimi ve ses kanalı görünümü iyileştirildi</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Ekran paylaşımı önizlemesi kaldırıldı (çalışmayan önizleme yerine bilgi mesajı)</li>
+      <li><span class="changelog-tag tag-win">Windows</span> YouTube oynatıcı iframe ile sadeleştirildi — pencere modunda menü sorunu giderildi</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.9;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.6</span>
+      <span class="changelog-date">Haziran 2026 · Windows &amp; Android</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-win">Windows</span> YouTube CSP düzeltmesi — video artık googlevideo.com engeline takılmıyor</li>
+      <li><span class="changelog-tag tag-win">Windows</span> YouTube ayrı process (BrowserView) — sesli sohbet açıkken video daha akıcı</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Ana ekran çökme düzeltmesi (displayName boş kullanıcılar)</li>
+      <li><span class="changelog-tag tag-android">Android</span> YouTube oynatma düzeltmesi (origin / nocookie)</li>
+      <li><span class="changelog-tag tag-android">Android</span> Kullanıcı dokümanı ve Firestore yazım hataları giderildi</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Sesli sohbet, ekran paylaşımı ve oda senkron iyileştirmeleri</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.85;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.2</span>
+      <span class="changelog-date">Haziran 2026 · Windows</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-win">Windows</span> Kurulum sihirbazı (.exe) — masaüstü kısayolu oluşturur</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Kurulum bitince uygulama otomatik açılır</li>
+      <li><span class="changelog-tag tag-win">Windows</span> İndirme linki bulut depolamaya taşındı (doğrudan kurulum paketi)</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.85;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.1</span>
+      <span class="changelog-date">Haziran 2026 · Windows</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-win">Windows</span> Sesli sohbet, profil sürüm bilgisi ve güncel site paketi</li>
+    </ul>
+  </div>
+
+  <div class="changelog-card reveal" style="margin-top:16px;opacity:0.85;">
+    <div class="changelog-header">
+      <span class="changelog-version">v1.2.0</span>
+      <span class="changelog-date">Haziran 2026 · Windows &amp; Android</span>
+    </div>
+    <ul class="changelog-list">
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Odadan çıkınca sesli sohbetten otomatik ayrılma</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Oda planlama — zamanlanmış odalar ve geri sayım</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Engellenen kullanıcılar listesi ve oda içi engelleme</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Sesli sohbet ses kalitesi ve bağlantı kararlılığı iyileştirmeleri</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Bağlantı durumu göstergeleri (bağlanıyor / yeniden bağlanıyor)</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Klavye kısayolları: M sustur, V sese katıl/ayrıl</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Ekran paylaşımı kalite seçici (480p / 720p / 1080p)</li>
+      <li><span class="changelog-tag tag-win">Windows</span> Uzak ses kazancı ve ses + ekran paylaşımı koordinasyonu</li>
+      <li><span class="changelog-tag tag-android">Android</span> MIUI / Redmi Note 12 ses yönlendirme düzeltmeleri</li>
+      <li><span class="changelog-tag tag-android">Android</span> Oda üst çubuğu ve tam ekran düzeni düzeltildi</li>
+      <li><span class="changelog-tag tag-both">Her iki platform</span> Profilde uygulama sürümü görüntüleme</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ FAQ ═══════════════ -->
+<section class="faq" id="faq">
+  <div class="section-eyebrow reveal">SSS</div>
+  <h2 class="section-title reveal">Sık sorulan sorular</h2>
+  <p class="section-sub reveal">Kurulum, platform uyumu ve güvenlik hakkında kısa cevaplar.</p>
+
+  <div class="faq-list">
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button">WatchToFriend gerçekten ücretsiz mi?<span>+</span></button>
+      <div class="faq-a">Evet. Abonelik, reklam veya gizli ücret yok. Tüm özellikler — sesli sohbet, ekran paylaşımı, sınırsız oda — tamamen ücretsiz.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button">Windows ve Android aynı odada birlikte çalışır mı?<span>+</span></button>
+      <div class="faq-a">Evet. Aynı 6 haneli oda kodunu kullanarak farklı platformlardan aynı odaya katılabilirsiniz. Video senkronu, chat ve sesli sohbet her iki tarafta da çalışır.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button">Kurulum nasıl yapılır?<span>+</span></button>
+      <div class="faq-a">Zip dosyasını indirin, sağ tıklayıp "Tümünü ayıkla" deyin, ardından <strong>WatchToFriend Setup 1.3.0.exe</strong> dosyasını çalıştırın. Kurulum bitince masaüstü kısayolundan uygulamayı açabilirsiniz.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button">YouTube videoları neden bazen oynatılamıyor?<span>+</span></button>
+      <div class="faq-a">Bazı videolar sahibi tarafından gömülmeye kapatılmış olabilir (YouTube kuralı). Bu durumda "YouTube'da aç" seçeneğini kullanabilir veya başka bir video seçebilirsiniz. Arama sonuçlarında gömülemeyen videolar filtrelenir.</div>
+    </div>
+    <div class="faq-item reveal">
+      <button class="faq-q" type="button">Verilerim güvende mi?<span>+</span></button>
+      <div class="faq-a">Sesli sohbet WebRTC ile cihazlar arası (P2P) iletilir. Oda ve mesaj verileri Firebase üzerinde şifreli bağlantı ile senkronize edilir. Kredi kartı veya ödeme bilgisi toplanmaz.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FREE ═══════════════ -->
+<section class="free-section" id="pricing">
+  <div class="free-badge reveal">
+    ✓ Tamamen Ücretsiz
+  </div>
+  <h2 class="free-title reveal">
+    Reklam yok. Abonelik yok.<br>
+    <span class="highlight">Sonsuza kadar ücretsiz.</span>
+  </h2>
+  <p class="free-sub reveal">
+    WatchToFriend WebRTC ve Firebase üzerinde çalışır.
+    Gizli maliyet yok, kredi kartı yok, sürpriz yok.
+  </p>
+  <div class="free-features reveal">
+    <div class="free-feature"><div class="check">✓</div>Sınırsız oda</div>
+    <div class="free-feature"><div class="check">✓</div>Sınırsız mesaj</div>
+    <div class="free-feature"><div class="check">✓</div>Ücretsiz sesli sohbet</div>
+    <div class="free-feature"><div class="check">✓</div>Ekran paylaşımı</div>
+    <div class="free-feature"><div class="check">✓</div>Arkadaş listesi</div>
+    <div class="free-feature"><div class="check">✓</div>Tüm platformlar</div>
+  </div>
+</section>
+
+<!-- ═══════════════ DOWNLOAD CTA ═══════════════ -->
+<section class="download-hero" id="download">
+  <h2 class="reveal">Hemen Başla</h2>
+  <p class="reveal">İndir, kur, arkadaşlarını davet et. 30 saniye yeterli.</p>
+
+  <div style="position:relative;z-index:1;" class="reveal">
+    <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" class="btn-download" style="font-size:17px;padding:18px 40px;" download>
+      <span class="ico">⬇</span>
+      <span>
+        Windows için İndir
+        <small>WatchToFriend-1.3.0.zip · içinde Setup exe · ~90 MB</small>
+      </span>
+    </a>
+    <span class="btn-outline coming" style="margin-left:12px;font-size:17px;padding:18px 32px;display:inline-flex;align-items:center;">
+      📱 Yakında Google Play'de
+    </span>
+  </div>
+
+  <div class="dl-meta reveal">
+    <span>💻 Windows 10/11 · v1.3.0</span>
+    <span class="dot-sep">·</span>
+    <span>📱 Android · Yakında Google Play'de</span>
+    <span class="dot-sep">·</span>
+    <span>🆓 Ücretsiz</span>
+  </div>
+  <p class="reveal" style="margin-top:16px;font-size:13px;color:var(--text3);position:relative;z-index:1;max-width:520px;margin-left:auto;margin-right:auto;line-height:1.7;">
+    1) Zip'i indir &nbsp;→&nbsp; 2) Sağ tık <strong style="color:var(--text2);">Tümünü ayıkla</strong> &nbsp;→&nbsp;
+    3) <strong style="color:var(--text2);">WatchToFriend Setup 1.3.0.exe</strong> çalıştır &nbsp;→&nbsp;
+    4) Masaüstündeki kısayoldan aç.
+  </p>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="footer-logo">
+        <img src="/brand-logo.png?v=5" alt="" class="footer-logo-icon" width="28" height="28" />
+        WatchToFriend
+      </a>
+      <p class="footer-tagline">
+        Arkadaşlarınla birlikte video izlemenin en kolay yolu.
+        Gerçek zamanlı senkron, sesli sohbet ve çok daha fazlası.
+      </p>
+    </div>
+    <div class="footer-col">
+      <h4>Uygulama</h4>
+      <a href="#features">Özellikler</a>
+      <a href="#how">Nasıl Çalışır</a>
+      <a href="#platforms">Platformlar</a>
+      <a href="#faq">SSS</a>
+      <a href="#changelog">Sürüm Notları</a>
+      <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" download>Windows v1.3.0</a>
+      <span style="color:var(--text3);font-size:14px;">Android · Yakında Google Play'de</span>
+    </div>
+    <div class="footer-col">
+      <h4>Teknoloji</h4>
+      <a href="#">WebRTC P2P</a>
+      <a href="#">Firebase</a>
+      <a href="#">Cloudflare TURN</a>
+      <a href="#">Electron</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 WatchToFriend · v1.3.0</span>
+    <span>Sevgiyle yapıldı 🎬</span>
+  </div>
+</footer>
+
+<div class="mobile-dock">
+  <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.3.0.zip" class="mobile-dock-btn" download>⬇ Windows İndir · Ücretsiz</a>
+  <span class="mobile-dock-meta">v1.3.0 · Android yakında</span>
+</div>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver(
+    (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } }),
+    { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+  );
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Nav scroll + mobile menu
+  const nav = document.querySelector('nav');
+  const menu = document.getElementById('mobileMenu');
+  const toggle = document.querySelector('.nav-toggle');
+  const panel = menu?.querySelector('.mobile-menu-panel');
+
+  function setMenuOpen(open) {
+    if (!menu || !toggle) return;
+    menu.classList.toggle('open', open);
+    menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+
+  toggle?.addEventListener('click', () => setMenuOpen(!menu.classList.contains('open')));
+  menu?.addEventListener('click', (e) => { if (e.target === menu) setMenuOpen(false); });
+  panel?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenuOpen(false)));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenuOpen(false); });
+
+  window.addEventListener('scroll', () => {
+    nav?.classList.toggle('scrolled', window.scrollY > 24);
+  }, { passive: true });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+
+  // İndirme linklerini downloads.json'dan güncelle
+  fetch('/downloads.json').then(r => r.json()).then(data => {
+    const url = data?.windows?.url;
+    if (!url || !url.startsWith('http')) return;
+    document.querySelectorAll('a[download]').forEach(a => {
+      if (a.href.includes('catbox') || a.href.includes('/downloads/') || a.classList.contains('mobile-dock-btn')) a.href = url;
+    });
+    const bar = document.querySelector('.announce-bar a[download]');
+    if (bar) bar.href = url;
+  }).catch(() => {});
+</script>
+
+</body>
+</html>

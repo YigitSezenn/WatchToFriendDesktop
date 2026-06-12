@@ -1,0 +1,69 @@
+# Dependencies
+node_modules/
+functions/node_modules/
+
+# Build & release
+out/
+release/
+dist/
+*.exe
+*.blockmap
+
+# Electron / Vite cache
+.vite/
+*.asar
+
+# Firebase
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log*
+*-service-account*.json
+serviceAccount*.json
+
+# Secrets & local env
+.env
+.env.*
+.env.local
+*.pem
+*.p12
+
+# Large binaries (indirmeler Firebase Hosting'de)
+public/downloads/*.zip
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & IDE
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.suo
+*.user
+
+# Test / coverage
+coverage/
+.nyc_output/
+lib-cov/
+
+# Misc
+.dataconnect
+.eslintcache
+.npm
+.yarn-integrity
+*.tgz
+.grunt
+.lock-wscript
+build/Release
+pids/
+*.pid
+*.seed
+*.pid.lock
+.node_repl_history
+bower_components/

@@ -1,0 +1,23 @@
+=========================================================
+  WatchToFriend Desktop - KURULUM ADIMLARI
+=========================================================
+
+1. FIREBASE WEB APP ID AL (bir kez yapılır)
+   - Firebase Console -> watchtofriend projesi
+   - Project Settings (dişli ikonu) -> "Your apps"
+   - "Add app" -> Web (</>)  seç
+   - Nickname: "Desktop" -> Register App
+   - Çıkan config'den "appId" değerini kopyala
+   - src/renderer/src/firebase/config.ts içindeki
+     'BURAYA_FIREBASE_CONSOLE_WEB_APP_ID_GELECEK' yerine yapıştır
+
+2. PAKETLERI YUKLE
+   cd D:\MobilUygulamaProjeleri\WatchToFriendDesktop
+   npm install
+
+3. GELIŞTIRME MODUNDA ÇALIŞTIR
+   npm run dev
+
+4. BUILD AL (dağıtım için)
+   npm run build
+=========================================================

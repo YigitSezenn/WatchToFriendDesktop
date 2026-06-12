@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Odaya Katıl — WatchToFriend</title>
+  <meta name="description" content="WatchToFriend davet linki ile odaya katıl." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0A0A0F;
+      --bg2: #12121A;
+      --accent: #8B5CF6;
+      --accent2: #A78BFA;
+      --text: #F5F3FF;
+      --text2: #A1A1B5;
+      --border: rgba(139, 92, 246, 0.2);
+    }
+    body {
+      min-height: 100vh;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background:
+        radial-gradient(ellipse 90% 55% at 50% 0%, rgba(109, 40, 217, 0.18) 0%, transparent 62%),
+        var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 28px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    }
+    .logo {
+      width: 56px; height: 56px;
+      margin: 0 auto 20px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6D28D9, #8B5CF6);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+    }
+    h1 { font-size: 1.35rem; font-weight: 700; margin-bottom: 8px; }
+    p { color: var(--text2); font-size: 0.95rem; line-height: 1.55; margin-bottom: 20px; }
+    .code {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 0.35rem;
+      color: var(--accent2);
+      margin: 16px 0 24px;
+      padding: 14px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 13px 20px;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.18s;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 18px rgba(139, 92, 246, 0.35);
+    }
+    .btn-primary:hover { background: #6D28D9; }
+    .btn-secondary {
+      background: rgba(139, 92, 246, 0.08);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent2); }
+    .hint { font-size: 0.82rem; margin-top: 16px; }
+    .error { color: #ED4245; }
+    #status { min-height: 1.2em; font-size: 0.85rem; color: var(--accent2); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🎬</div>
+    <h1>Odaya davet edildin</h1>
+    <p id="subtitle">Uygulamayı açarak veya kodu girerek katılabilirsin.</p>
+    <div class="code" id="room-code">------</div>
+    <button type="button" class="btn btn-primary" id="open-app">Uygulamada Aç</button>
+    <button type="button" class="btn btn-secondary" id="copy-link">Davet Linkini Kopyala</button>
+    <a href="/" class="btn btn-secondary">Ana Sayfaya Dön</a>
+    <p class="hint" id="hint">Android: uygulama yüklüyse doğrudan açılır. Açılmazsa aşağıdaki kodu uygulamada «Odaya Katıl» ekranına gir.</p>
+    <div id="status"></div>
+  </div>
+  <script>
+    const WEB_BASE = 'https://watchtofriend.web.app';
+    const PKG = 'com.watch.watchtofriend';
+    const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+    function normalizeCode(raw) {
+      const code = (raw || '').toUpperCase().trim();
+      if (code.length !== 6) return null;
+      if (![...code].every((c) => CODE_CHARS.includes(c))) return null;
+      return code;
+    }
+
+    function getCodeFromPath() {
+      const parts = location.pathname.split('/').filter(Boolean);
+      const joinIdx = parts.indexOf('join');
+      if (joinIdx >= 0 && parts[joinIdx + 1]) return normalizeCode(parts[joinIdx + 1]);
+      const q = new URLSearchParams(location.search).get('code');
+      return q ? normalizeCode(q) : null;
+    }
+
+    const code = getCodeFromPath();
+    const codeEl = document.getElementById('room-code');
+    const subtitle = document.getElementById('subtitle');
+    const status = document.getElementById('status');
+    const isAndroid = /Android/i.test(navigator.userAgent);
+
+    if (!code) {
+      codeEl.textContent = 'HATALI';
+      codeEl.classList.add('error');
+      subtitle.textContent = 'Geçersiz davet linki. Arkadaşından yeni bir link iste.';
+      document.getElementById('open-app').disabled = true;
+      document.getElementById('copy-link').disabled = true;
+    } else {
+      codeEl.textContent = code;
+      const link = WEB_BASE + '/join/' + code;
+      const customScheme = 'watchtofriend://join/' + code;
+      const httpsIntent =
+        'intent://watchtofriend.web.app/join/' + code +
+        '#Intent;scheme=https;package=' + PKG + ';end';
+      const schemeIntent =
+        'intent://join/' + code +
+        '#Intent;scheme=watchtofriend;package=' + PKG + ';end';
+
+      function openInApp() {
+        status.textContent = 'Uygulama açılıyor…';
+        if (isAndroid) {
+          window.location.href = httpsIntent;
+          setTimeout(() => { window.location.href = schemeIntent; }, 500);
+          setTimeout(() => { window.location.href = customScheme; }, 1000);
+        } else {
+          window.location.href = customScheme;
+        }
+        setTimeout(() => {
+          status.textContent = 'Açılmadıysa kodu kopyala: ' + code + ' → uygulama → Odaya Katıl';
+        }, 2500);
+      }
+
+      document.getElementById('open-app').addEventListener('click', openInApp);
+
+      if (isAndroid) {
+        setTimeout(openInApp, 300);
+      }
+
+      document.getElementById('copy-link').addEventListener('click', async () => {
+        const msg = '🎬 Watch with Friends odasına katıl!\n' + link;
+        try {
+          await navigator.clipboard.writeText(msg);
+          status.textContent = 'Davet linki kopyalandı!';
+        } catch {
+          status.textContent = 'Kopyalanamadı — link: ' + link;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
