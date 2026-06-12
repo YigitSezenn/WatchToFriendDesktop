@@ -21,6 +21,8 @@ interface Props {
   onRemovePhoto: () => Promise<void>
   onDeleteHistory: (id: string) => void
   onUnblockUser: (uid: string) => Promise<void>
+  onDeleteAccount?: (password: string) => Promise<void>
+  onChangePassword?: (currentPassword: string, newPassword: string) => Promise<void>
   onReplayTour?: () => void
   onOpenHelp?: () => void
   onClose: () => void
@@ -28,7 +30,7 @@ interface Props {
 
 export default function ProfileModal({
   user, history, onUpdateName, onUpdatePhoto, onRemovePhoto, onDeleteHistory, onUnblockUser,
-  onReplayTour, onOpenHelp, onClose
+  onDeleteAccount, onChangePassword, onReplayTour, onOpenHelp, onClose
 }: Props) {
   const { mode: themeMode, setMode: setThemeMode } = useTheme()
   const { pref: localePref, setLocale, t, dateLocale } = useLocale()
@@ -55,6 +57,16 @@ export default function ProfileModal({
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [appVersion, setAppVersion] = useState<string | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deletePassword, setDeletePassword] = useState('')
+  const [deletingAccount, setDeletingAccount] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('')
+  const [passwordMsg, setPasswordMsg] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [changingPassword, setChangingPassword] = useState(false)
 
   useEffect(() => {
     const api = (window as { electronAPI?: { getAppVersion?: () => Promise<string> } }).electronAPI
@@ -124,6 +136,32 @@ export default function ProfileModal({
 
   function copyFriendCode() {
     if (user.friendCode) navigator.clipboard.writeText(user.friendCode)
+  }
+
+  async function handleChangePassword() {
+    if (!onChangePassword) return
+    setPasswordMsg(null)
+    setPasswordError(null)
+    if (newPassword.length < 6) {
+      setPasswordError(t('profile_password_min'))
+      return
+    }
+    if (newPassword !== newPasswordConfirm) {
+      setPasswordError(t('profile_password_mismatch'))
+      return
+    }
+    setChangingPassword(true)
+    try {
+      await onChangePassword(currentPassword, newPassword)
+      setCurrentPassword('')
+      setNewPassword('')
+      setNewPasswordConfirm('')
+      setPasswordMsg(t('profile_password_updated'))
+    } catch {
+      setPasswordError(t('profile_password_failed'))
+    } finally {
+      setChangingPassword(false)
+    }
   }
 
   const hasPhoto = Boolean(photoSrc(user.photoBase64))
@@ -237,6 +275,54 @@ export default function ProfileModal({
                 ))}
               </div>
             </div>
+            {onChangePassword && (
+              <div className="profile-password-section">
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', letterSpacing: '0.05rem', marginBottom: 8 }}>
+                  {t('profile_change_password')}
+                </div>
+                <div className="form-group" style={{ marginBottom: 8 }}>
+                  <label>{t('profile_current_password')}</label>
+                  <input
+                    type="password"
+                    autoComplete="current-password"
+                    value={currentPassword}
+                    disabled={changingPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 8 }}>
+                  <label>{t('profile_new_password')}</label>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    disabled={changingPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 8 }}>
+                  <label>{t('profile_new_password_confirm')}</label>
+                  <input
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPasswordConfirm}
+                    disabled={changingPassword}
+                    onChange={(e) => setNewPasswordConfirm(e.target.value)}
+                  />
+                </div>
+                {passwordError && <p className="profile-photo-error">{passwordError}</p>}
+                {passwordMsg && <p style={{ color: 'var(--success)', fontSize: 13, marginBottom: 8 }}>{passwordMsg}</p>}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  style={{ width: '100%' }}
+                  disabled={changingPassword || !currentPassword || !newPassword || !newPasswordConfirm}
+                  onClick={() => { void handleChangePassword() }}
+                >
+                  {changingPassword ? '...' : t('profile_change_password')}
+                </button>
+              </div>
+            )}
             <div className="profile-links" style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
               {onReplayTour && (
                 <button
@@ -319,6 +405,23 @@ export default function ProfileModal({
           </div>
         )}
 
+        {onDeleteAccount && (
+          <div className="profile-danger-zone">
+            <button
+              type="button"
+              className="btn-danger profile-delete-btn"
+              disabled={removingPhoto || deletingAccount}
+              onClick={() => {
+                setDeletePassword('')
+                setDeleteError(null)
+                setShowDeleteConfirm(true)
+              }}
+            >
+              {t('profile_delete_account')}
+            </button>
+          </div>
+        )}
+
         <button
           className="btn-secondary"
           style={{ width: '100%', marginTop: 16 }}
@@ -328,6 +431,69 @@ export default function ProfileModal({
           {removingPhoto ? t('profile_wait') : t('profile_close')}
         </button>
       </div>
+
+      {showDeleteConfirm && onDeleteAccount && (
+        <div className="modal-overlay modal-overlay--nested" onClick={() => { if (!deletingAccount) setShowDeleteConfirm(false) }}>
+          <div className="modal modal--confirm" onClick={(e) => e.stopPropagation()}>
+            <h3>{t('profile_delete_title')}</h3>
+            <p className="modal-confirm-body">{t('profile_delete_body')}</p>
+            <div className="form-group" style={{ marginTop: 12 }}>
+              <label>{t('profile_delete_password')}</label>
+              <input
+                type="password"
+                value={deletePassword}
+                autoComplete="current-password"
+                disabled={deletingAccount}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && deletePassword.trim()) {
+                    void (async () => {
+                      setDeletingAccount(true)
+                      setDeleteError(null)
+                      try {
+                        await onDeleteAccount(deletePassword)
+                        setShowDeleteConfirm(false)
+                        onClose()
+                      } catch {
+                        setDeleteError(t('profile_delete_failed'))
+                      } finally {
+                        setDeletingAccount(false)
+                      }
+                    })()
+                  }
+                }}
+              />
+            </div>
+            {deleteError && <p className="profile-photo-error">{deleteError}</p>}
+            <div className="modal-actions">
+              <button className="btn-secondary" disabled={deletingAccount} onClick={() => setShowDeleteConfirm(false)}>
+                {t('common_cancel')}
+              </button>
+              <button
+                className="btn-danger"
+                disabled={deletingAccount || !deletePassword.trim()}
+                onClick={() => {
+                  void (async () => {
+                    setDeletingAccount(true)
+                    setDeleteError(null)
+                    try {
+                      await onDeleteAccount(deletePassword)
+                      setShowDeleteConfirm(false)
+                      onClose()
+                    } catch {
+                      setDeleteError(t('profile_delete_failed'))
+                    } finally {
+                      setDeletingAccount(false)
+                    }
+                  })()
+                }}
+              >
+                {deletingAccount ? '...' : t('profile_delete_confirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

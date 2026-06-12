@@ -1,5 +1,6 @@
 import { BrowserView, BrowserWindow, ipcMain, Rectangle } from 'electron'
 import { join } from 'path'
+import { loadYtEmbedPage, parseYtEmbedUrl } from './ytPage'
 
 export interface YtViewBounds {
   x: number
@@ -12,6 +13,7 @@ interface YtViewState {
   view: BrowserView
   attached: boolean
   lastBounds: Rectangle
+  lastUrl: string
 }
 
 const states = new WeakMap<BrowserWindow, YtViewState>()
@@ -34,7 +36,7 @@ function getState(win: BrowserWindow, preloadPath: string): YtViewState {
     view.webContents.on('console-message', (_event, _level, message) => {
       if (message.includes('[YT')) console.log('[yt-view]', message)
     })
-    state = { view, attached: false, lastBounds: { x: 0, y: 0, width: 0, height: 0 } }
+    state = { view, attached: false, lastBounds: { x: 0, y: 0, width: 0, height: 0 }, lastUrl: '' }
     states.set(win, state)
 
     win.on('closed', () => {
@@ -57,11 +59,22 @@ function clampBounds(win: BrowserWindow, bounds: Rectangle): Rectangle {
   return { x, y, width, height }
 }
 
+async function loadYtViewUrl(state: YtViewState, url: string): Promise<void> {
+  const params = parseYtEmbedUrl(url)
+  if (params) {
+    await loadYtEmbedPage(state.view.webContents, params)
+    state.lastUrl = url
+    return
+  }
+  await state.view.webContents.loadURL(url)
+  state.lastUrl = url
+}
+
 export function registerYtBrowserViewIpc(preloadPath: string): void {
   if (ipcRegistered) return
   ipcRegistered = true
 
-  ipcMain.handle('yt-view:show', (event, payload: { url: string; bounds: YtViewBounds }) => {
+  ipcMain.handle('yt-view:show', async (event, payload: { url: string; bounds: YtViewBounds }) => {
     const win = senderWindow(event)
     if (!win || !payload?.url || !payload.bounds) return
     const state = getState(win, preloadPath)
@@ -77,8 +90,8 @@ export function registerYtBrowserViewIpc(preloadPath: string): void {
       state.attached = true
     }
     state.view.setBounds(bounds)
-    if (state.view.webContents.getURL() !== payload.url) {
-      state.view.webContents.loadURL(payload.url)
+    if (state.lastUrl !== payload.url) {
+      await loadYtViewUrl(state, payload.url)
     }
   })
 
@@ -112,12 +125,12 @@ export function registerYtBrowserViewIpc(preloadPath: string): void {
     states.get(win)?.view.webContents.send('yt-view:cmd', cmd)
   })
 
-  ipcMain.handle('yt-view:reload', (event, url: string) => {
+  ipcMain.handle('yt-view:reload', async (event, url: string) => {
     const win = senderWindow(event)
     if (!win || !url) return
     const state = states.get(win)
     if (!state) return
-    state.view.webContents.loadURL(url)
+    await loadYtViewUrl(state, url)
   })
 
   ipcMain.on('yt-view:event', (event, data: Record<string, unknown>) => {
@@ -129,5 +142,5 @@ export function registerYtBrowserViewIpc(preloadPath: string): void {
     win.webContents.send('yt-view:event', data)
   })
 
-  console.log('[main] YouTube BrowserView IPC hazır (ayrı process)')
+  console.log('[main] YouTube BrowserView IPC hazır (watchtofriend.app origin)')
 }

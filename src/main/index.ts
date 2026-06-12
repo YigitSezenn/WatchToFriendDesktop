@@ -4,6 +4,8 @@ import { is } from '@electron-toolkit/utils'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import * as http from 'http'
 import { registerYtBrowserViewIpc } from './ytBrowserView'
+import { bindNotificationWindow, registerNotificationIpc } from './notifications'
+import { buildYtPageHtml } from './ytPage'
 
 const YT_PORT = 7842
 const YT_LOCAL_ORIGIN = `http://127.0.0.1:${YT_PORT}`
@@ -184,81 +186,6 @@ http.createServer((req, res) => {
   }
   console.error('[YT] Sunucu hatası:', err)
 }).listen(YT_PORT, '127.0.0.1')
-
-function buildYtPageHtml(videoId: string, autoplay: number, startSec: number, showControls: number): string {
-  return `<!DOCTYPE html>
-<html><head>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{background:#000;width:100vw;height:100vh;overflow:hidden}#player{width:100%;height:100%}</style>
-</head><body>
-<div id="player"></div>
-<script>
-var tag=document.createElement('script');tag.src='https://www.youtube.com/iframe_api';document.head.appendChild(tag);
-var player=null,playerReady=false,pendingCmd=null,progressTimer=null;
-function startProgressTimer(){
-  if(progressTimer)return;
-  progressTimer=setInterval(function(){
-    if(!player||!playerReady)return;
-    try{
-      var c=player.getCurrentTime?player.getCurrentTime():0;
-      var d=player.getDuration?player.getDuration():0;
-      postToHost({type:'YT_PROGRESS',current:c||0,duration:d||0});
-    }catch(e){}
-  },1000);
-}
-function stopProgressTimer(){
-  if(progressTimer){clearInterval(progressTimer);progressTimer=null;}
-}
-function postToHost(data){
-  if(window.ytBridge){window.ytBridge.postEvent(data);}
-  else if(window.parent&&window.parent!==window){window.parent.postMessage(data,'*');}
-}
-function runCmd(cmd){
-  if(!player||!playerReady||!cmd)return;
-  if(cmd.cmd==='play'){player.seekTo(cmd.pos,true);player.playVideo();}
-  if(cmd.cmd==='pause'){player.pauseVideo();}
-  if(cmd.cmd==='seek'){player.seekTo(cmd.pos,true);}
-}
-function handleCmd(cmd){
-  if(!cmd||!cmd.cmd)return;
-  var normalized={cmd:cmd.cmd,pos:typeof cmd.pos==='number'?cmd.pos:0};
-  if(!playerReady){pendingCmd=normalized;return;}
-  runCmd(normalized);
-}
-function onYouTubeIframeAPIReady(){
-  player=new YT.Player('player',{
-    videoId:'${videoId}',
-    playerVars:{autoplay:${autoplay},controls:${showControls},disablekb:${showControls ? 0 : 1},enablejsapi:1,start:${startSec},origin:'http://127.0.0.1:${YT_PORT}',playsinline:1,rel:0,modestbranding:1},
-    events:{
-      onReady:function(){
-        playerReady=true;
-        postToHost({type:'YT_READY'});
-        if(${autoplay}){player.seekTo(${startSec},true);player.playVideo();startProgressTimer();}
-        if(pendingCmd){
-          if(${autoplay} && pendingCmd.cmd==='pause'){pendingCmd=null;}
-          else{runCmd(pendingCmd);pendingCmd=null;}
-        }
-      },
-      onError:function(e){console.error('[YT iframe] error',e.data);postToHost({type:'YT_ERROR',code:e.data});},
-      onStateChange:function(e){
-        var t=player&&player.getCurrentTime?player.getCurrentTime():0;
-        var d=player&&player.getDuration?player.getDuration():0;
-        console.log('[YT iframe] state',e.data,'time',t);
-        postToHost({type:'YT_STATE',state:e.data,time:t,duration:d});
-        if(e.data===1)startProgressTimer();
-        else if(e.data===2)stopProgressTimer();
-        else if(e.data===0){stopProgressTimer();postToHost({type:'YT_ENDED'});}
-      }
-    }
-  });
-}
-if(window.ytBridge){
-  window.ytBridge.onCmd(function(cmd){handleCmd(cmd);});
-}else{
-  window.addEventListener('message',function(e){handleCmd(e.data);});
-}
-</script>
-</body></html>`
-}
 
 // Kullanıcının seçtiği kaynak ID'si (SourcePickerModal → selectSource IPC → buraya)
 // createWindow dışında tutulur: ikinci pencere oluşturulursa duplicate handler hatası olmaz.
@@ -442,12 +369,14 @@ app.whenReady().then(() => {
     })
   })
   registerAppCspOnce()
+  registerNotificationIpc()
   registerYtBrowserViewIpc(join(__dirname, '../preload/yt-view.js'))
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
   registerIpcHandlers()
   mainWindow = createWindow()
+  bindMainWindow(mainWindow)
   const startupInvite = process.argv.find(
     (a) =>
       a.startsWith('watchtofriend://') ||
@@ -458,9 +387,18 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       mainWindow = createWindow()
+      bindMainWindow(mainWindow)
     }
   })
 })
+
+function bindMainWindow(win: BrowserWindow): void {
+  bindNotificationWindow(win)
+  win.on('closed', () => bindNotificationWindow(null))
+  win.on('focus', () => {
+    if (!win.isDestroyed()) win.flashFrame(false)
+  })
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

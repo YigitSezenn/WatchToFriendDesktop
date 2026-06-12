@@ -11,12 +11,13 @@ import VideoChangeModal from '../components/watch/VideoChangeModal'
 import type { QueueItem, YtSearchResult } from '../types'
 import { useScreenShare } from '../hooks/useScreenShare'
 import { useVoiceChat } from '../hooks/useVoiceChat'
-import { hideYtBrowserViewNow } from '../hooks/useYtBrowserView'
+import { hideYtBrowserViewNow, isYtBrowserViewAvailable, useYtBrowserView } from '../hooks/useYtBrowserView'
 import { photoSrc } from '../utils/photo'
 import { buildInviteMessage } from '../utils/inviteLink'
 import { useLocale } from '../hooks/useLocale'
 import { showToast } from '../utils/toast'
 import { youtubeErrorMessage } from '../utils/ytError'
+import { serverNow } from '../utils/serverClock'
 import type { Room, User, Message } from '../types'
 
 interface YtEvent {
@@ -26,6 +27,20 @@ interface YtEvent {
   current?: number
   duration?: number
   code?: number
+}
+
+interface YtSyncSnapshot {
+  videoUrl: string
+  videoVersion: number
+  isPlaying: boolean
+  currentPositionMs: number
+  lastUpdatedBy: string
+}
+
+interface YtCmdOpts {
+  force?: boolean
+  doSeek?: boolean
+  isPlaying?: boolean
 }
 
 const REACTION_EMOJIS = ['❤️', '😂', '🔥', '👏', '😮', '😢']
@@ -107,14 +122,25 @@ export default function WatchRoomScreen({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [showMembers, setShowMembers] = useState(false)
+  const [hostTransferTarget, setHostTransferTarget] = useState<{ uid: string; name: string } | null>(null)
   const [blockingUid, setBlockingUid] = useState<string | null>(null)
   const chatLayoutInit = useMemo(() => loadChatLayout(), [])
   const [chatOpen, setChatOpen] = useState(chatLayoutInit.open)
   const [chatWidth, setChatWidth] = useState(chatLayoutInit.width)
   const chatWidthRef = useRef(chatLayoutInit.width)
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const ytSlotRef = useRef<HTMLDivElement>(null)
+  const ytBarRef = useRef<HTMLDivElement>(null)
+  const headerRef = useRef<HTMLElement>(null)
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false)
+  const [headerHovered, setHeaderHovered] = useState(false)
+  const nativeYoutube = isYtBrowserViewAvailable()
   const [ytPlayerReady, setYtPlayerReady] = useState(false)
   const hostAutoStartedRef = useRef(false)
+  const lastSyncedRef = useRef<YtSyncSnapshot | null>(null)
+  const liveRoomRef = useRef(liveRoom)
+  liveRoomRef.current = liveRoom
+  const localPlayingRef = useRef(false)
 
   // ── Zamanlama geri sayımı ──────────────────────────────────────────
   const [scheduleCountdown, setScheduleCountdown] = useState<number | null>(null) // ms
@@ -145,6 +171,10 @@ export default function WatchRoomScreen({
   const [pollOptD, setPollOptD] = useState('')
   const [playerPosSec, setPlayerPosSec] = useState(0)
   const [playerDurSec, setPlayerDurSec] = useState(0)
+  const playerPosSecRef = useRef(0)
+  const playerDurSecRef = useRef(0)
+  playerPosSecRef.current = playerPosSec
+  playerDurSecRef.current = playerDurSec
   const [driftTick, setDriftTick] = useState(0)
   const [showQueue, setShowQueue] = useState(false)
   const endedHandledRef = useRef(false)
@@ -273,82 +303,88 @@ export default function WatchRoomScreen({
     })
   }, [roomId, exitRoom, onBack, t])
 
-  const postYtCmdIframe = useCallback((cmd: 'play' | 'pause' | 'seek', posSec: number) => {
+  const postYtCmdIframe = useCallback((cmd: 'play' | 'pause' | 'seek' | 'applyRemote', posSec: number, opts?: YtCmdOpts) => {
     const iframe = iframeRef.current
     if (!iframe?.contentWindow) return
-    iframe.contentWindow.postMessage({ cmd, pos: posSec }, '*')
+    if (cmd === 'applyRemote') {
+      iframe.contentWindow.postMessage({
+        cmd: 'applyRemote',
+        isPlaying: opts?.isPlaying,
+        pos: posSec,
+        doSeek: opts?.doSeek,
+        force: opts?.force
+      }, '*')
+      return
+    }
+    iframe.contentWindow.postMessage({ cmd, pos: posSec, force: opts?.force, doSeek: opts?.doSeek }, '*')
   }, [])
 
-  const postYtCmd = useCallback((cmd: 'play' | 'pause' | 'seek', posSec: number) => {
-    postYtCmdIframe(cmd, posSec)
-  }, [postYtCmdIframe])
+  const postYtCmdRef = useRef<(cmd: 'play' | 'pause' | 'seek' | 'applyRemote', posSec: number, opts?: YtCmdOpts) => void>(() => {})
 
-  const applyYtSync = useCallback(() => {
-    const playing = liveRoom.isPlaying
-    // Oynatıcı hazır değilken pause gönderme — iframe kuyruğa alır ve autoplay'i öldürür
-    if (!playing && !ytPlayerReady) return
-    const elapsed = playing
-      ? Math.max(0, Date.now() - liveRoom.updatedAt)
-      : 0
-    const pos = (liveRoom.currentPositionMs + elapsed) / 1000
-    postYtCmd(playing ? 'play' : 'pause', pos)
-  }, [liveRoom.isPlaying, liveRoom.currentPositionMs, liveRoom.updatedAt, postYtCmd, ytPlayerReady])
+  const youtubeId = useMemo(() => extractYouTubeId(liveRoom.videoUrl), [liveRoom.videoUrl])
+
+  const ytEmbedUrl = useMemo(() => {
+    if (!youtubeId) return null
+    return `http://127.0.0.1:7842/yt?v=${youtubeId}&autoplay=1&start=0&ctrl=${canControl ? 1 : 0}&rv=${liveRoom.videoVersion}`
+  }, [youtubeId, canControl, liveRoom.videoVersion])
+
+  const modalBlocksYtView =
+    showInvite || showUrlChange || showDeleteConfirm || showLeaveConfirm ||
+    showMembers || showPollDialog || showQueue || showChatSearch || headerMenuOpen
+
+  const handleHeaderMenuOpenChange = useCallback((open: boolean) => {
+    if (open) hideYtBrowserViewNow()
+    setHeaderMenuOpen(open)
+  }, [])
+
+  const handleHeaderPointerEnter = useCallback(() => {
+    hideYtBrowserViewNow()
+    setHeaderHovered(true)
+  }, [])
+
+  const handleHeaderPointerLeave = useCallback(() => {
+    setHeaderHovered(false)
+  }, [])
+
+  const ytViewActive =
+    nativeYoutube &&
+    !!ytEmbedUrl &&
+    !videoHidden &&
+    !sharingScreen &&
+    !someoneElseSharing &&
+    !modalBlocksYtView &&
+    !headerHovered
+
+  const applyRemoteToPlayer = useCallback((isPlaying: boolean, posSec: number, doSeek: boolean, force: boolean) => {
+    postYtCmdRef.current('applyRemote', posSec, { isPlaying, doSeek, force })
+  }, [])
+
+  const roomPosSec = useCallback((room: Room) => {
+    const elapsed = room.isPlaying ? Math.max(0, serverNow() - room.updatedAt) : 0
+    return (room.currentPositionMs + elapsed) / 1000
+  }, [])
 
   useEffect(() => {
     setYtError(null)
     setPlayerPosSec(0)
     setPlayerDurSec(0)
     endedHandledRef.current = false
+    lastSyncedRef.current = null
+    localPlayingRef.current = false
   }, [liveRoom.videoUrl, liveRoom.videoVersion])
 
-  // videoVersion değişince iframe yeniden yükle
+  // videoVersion değişince oynatıcıyı sıfırla (BrowserView hook reload ile halleder)
   useEffect(() => {
     if (liveRoom.videoVersion && liveRoom.videoVersion !== prevVideoVersionRef.current) {
       prevVideoVersionRef.current = liveRoom.videoVersion
       hostAutoStartedRef.current = false
       setYtPlayerReady(false)
-      const iframe = iframeRef.current
-      if (iframe) iframe.src = iframe.src // reload
+      if (!nativeYoutube) {
+        const iframe = iframeRef.current
+        if (iframe) iframe.src = iframe.src // reload
+      }
     }
-  }, [liveRoom.videoVersion])
-
-  // Host: eski odalarda isPlaying=false kalmışsa videoyu başlat
-  useEffect(() => {
-    if (!canControl || !liveRoom.videoUrl || !extractYouTubeId(liveRoom.videoUrl)) return
-    if (hostAutoStartedRef.current || liveRoom.isPlaying) return
-    hostAutoStartedRef.current = true
-    const posMs = liveRoom.currentPositionMs
-    setLiveRoom((prev) => ({
-      ...prev,
-      isPlaying: true,
-      updatedAt: Date.now(),
-      lastUpdatedBy: currentUser.uid
-    }))
-    postYtCmd('play', posMs / 1000)
-    onUpdateVideo(true, posMs)
-  }, [canControl, liveRoom.videoUrl, liveRoom.isPlaying, liveRoom.currentPositionMs, liveRoom.videoVersion, onUpdateVideo, postYtCmd, currentUser.uid])
-
-  // YouTube: host + misafir — iframe komut kuyruğu (YT_READY beklemeden de gönder)
-  useEffect(() => {
-    applyYtSync()
-  }, [applyYtSync])
-
-  // Yüklenme sırasında play komutunu birkaç kez yinele (spinner'da takılma)
-  useEffect(() => {
-    const ytId = extractYouTubeId(liveRoom.videoUrl)
-    if (!ytId) return
-    if (!liveRoom.isPlaying) return
-    const timers = [400, 1200, 2500, 5000, 9000].map((ms) =>
-      setTimeout(() => {
-        const elapsedNow = liveRoom.isPlaying
-          ? Math.max(0, Date.now() - liveRoom.updatedAt)
-          : 0
-        const posNow = (liveRoom.currentPositionMs + elapsedNow) / 1000
-        postYtCmd('play', posNow)
-      }, ms)
-    )
-    return () => timers.forEach(clearTimeout)
-  }, [liveRoom.videoUrl, liveRoom.videoVersion, liveRoom.isPlaying, canControl, liveRoom.currentPositionMs, liveRoom.updatedAt, postYtCmd])
+  }, [liveRoom.videoVersion, nativeYoutube])
 
   // Ekran paylaşımı bitince iframe yeniden mount olur — yalnızca paylaşımdan çıkışta sıfırla
   const wasScreenSharingRef = useRef(false)
@@ -365,7 +401,7 @@ export default function WatchRoomScreen({
     }
     if (t === 'YT_READY') {
       setYtPlayerReady(true)
-      applyYtSync()
+      lastSyncedRef.current = null
       return
     }
     if (t === 'YT_ERROR') {
@@ -391,24 +427,152 @@ export default function WatchRoomScreen({
       setPlayerPosSec(rawTime)
       const dur = typeof event.duration === 'number' && isFinite(event.duration) ? event.duration : 0
       if (dur > 0) setPlayerDurSec(dur)
-      if (!canControl) return
       const state = event.state
+      if (state === 1) localPlayingRef.current = true
+      else if (state === 2) localPlayingRef.current = false
+      if (!canControl) return
       if (state !== 1 && state !== 2) return
       const clampedMs = Math.round(Math.max(0, Math.min(rawTime, 86400)) * 1000)
       onUpdateVideo(state === 1, clampedMs)
     }
-  }, [canControl, isHost, onUpdateVideo, applyYtSync, onAdvanceQueue])
+  }, [canControl, isHost, onUpdateVideo, onAdvanceQueue])
+
+  const { postCmd: postYtCmdNative } = useYtBrowserView({
+    active: ytViewActive,
+    url: ytEmbedUrl,
+    slotRef: ytSlotRef,
+    clipTopRef: headerRef,
+    clipBottomRef: ytBarRef,
+    onEvent: handleYtEvent
+  })
+
+  const postYtCmd = useCallback((cmd: 'play' | 'pause' | 'seek' | 'applyRemote', posSec: number, opts?: YtCmdOpts) => {
+    if (nativeYoutube) {
+      postYtCmdNative(cmd, posSec, opts)
+    } else {
+      postYtCmdIframe(cmd, posSec, opts)
+    }
+  }, [nativeYoutube, postYtCmdNative, postYtCmdIframe])
 
   useEffect(() => {
+    postYtCmdRef.current = postYtCmd
+  }, [postYtCmd])
+
+  // Uzak oda durumu → oynatıcı (Android parity: kendi yazdığımızı tekrar uygulama, gereksiz seek yok)
+  useEffect(() => {
+    if (!youtubeId || !ytPlayerReady) return
+
+    const cur = liveRoom
+    const last = lastSyncedRef.current
+
+    if (last &&
+      cur.videoUrl === last.videoUrl &&
+      cur.videoVersion === last.videoVersion &&
+      cur.isPlaying === last.isPlaying &&
+      cur.currentPositionMs === last.currentPositionMs &&
+      cur.lastUpdatedBy === last.lastUpdatedBy
+    ) {
+      return
+    }
+
+    const posSec = roomPosSec(cur)
+    const isInitial = last === null
+
+    if (isInitial) {
+      if (cur.isPlaying) {
+        applyRemoteToPlayer(true, posSec, true, false)
+      } else if (!canControl) {
+        applyRemoteToPlayer(false, posSec, true, false)
+      }
+    } else if (cur.lastUpdatedBy !== currentUser.uid) {
+      applyRemoteToPlayer(cur.isPlaying, posSec, true, false)
+    }
+
+    lastSyncedRef.current = {
+      videoUrl: cur.videoUrl,
+      videoVersion: cur.videoVersion,
+      isPlaying: cur.isPlaying,
+      currentPositionMs: cur.currentPositionMs,
+      lastUpdatedBy: cur.lastUpdatedBy
+    }
+  }, [liveRoom, youtubeId, ytPlayerReady, canControl, currentUser.uid, applyRemoteToPlayer, roomPosSec])
+
+  // Host: eski odalarda isPlaying=false kalmışsa videoyu başlat
+  useEffect(() => {
+    if (!canControl || !liveRoom.videoUrl || !extractYouTubeId(liveRoom.videoUrl)) return
+    if (hostAutoStartedRef.current || liveRoom.isPlaying) return
+    hostAutoStartedRef.current = true
+    const posMs = liveRoom.currentPositionMs
+    setLiveRoom((prev) => ({
+      ...prev,
+      isPlaying: true,
+      updatedAt: serverNow(),
+      lastUpdatedBy: currentUser.uid
+    }))
+    applyRemoteToPlayer(true, posMs / 1000, true, true)
+    onUpdateVideo(true, posMs)
+  }, [canControl, liveRoom.videoUrl, liveRoom.isPlaying, liveRoom.currentPositionMs, liveRoom.videoVersion, onUpdateVideo, applyRemoteToPlayer, currentUser.uid])
+
+  // YouTube spinner'da takılırsa kademeli play yeniden dene (Android: ardışık gecikmeler)
+  useEffect(() => {
+    if (!youtubeId || !ytPlayerReady || !liveRoom.isPlaying) return
+    let cancelled = false
+    const gaps = [400, 800, 1300, 2500, 4000]
+    void (async () => {
+      for (const gap of gaps) {
+        await new Promise((r) => setTimeout(r, gap))
+        if (cancelled || !ytPlayerReady) return
+        const r = liveRoomRef.current
+        if (!r.isPlaying || !extractYouTubeId(r.videoUrl)) return
+        if (playerPosSecRef.current >= 0.8 || playerDurSecRef.current <= 1) return
+        applyRemoteToPlayer(true, roomPosSec(r), true, true)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [liveRoom.videoUrl, liveRoom.videoVersion, liveRoom.isPlaying, ytPlayerReady, youtubeId, applyRemoteToPlayer, roomPosSec])
+
+  // Self-heal — Android LaunchedEffect(playerPosSec) ile aynı
+  useEffect(() => {
+    if (!youtubeId || !ytPlayerReady) return
+    const r = liveRoom
+    const expected = roomPosSec(r)
+    if (!canControl) {
+      if (!r.isPlaying || playerDurSec <= 1) return
+      if (Math.abs(playerPosSec - expected) > 2) {
+        applyRemoteToPlayer(r.isPlaying, expected, true, true)
+      }
+      return
+    }
+    if (r.isPlaying && playerPosSec < 0.8 && playerDurSec > 1 && Math.abs(playerPosSec - expected) > 1) {
+      applyRemoteToPlayer(true, expected, true, true)
+    }
+  }, [playerPosSec, youtubeId, ytPlayerReady, canControl, liveRoom, playerDurSec, applyRemoteToPlayer, roomPosSec])
+
+  // Host: periyodik konum yayını (Android reportPosition)
+  useEffect(() => {
+    if (!canControl || !youtubeId || !ytPlayerReady || !liveRoom.isPlaying) return
+    const t = setInterval(() => {
+      const pos = playerPosSecRef.current
+      if (pos > 0.5) {
+        onUpdateVideo(localPlayingRef.current, Math.round(pos * 1000))
+      }
+    }, 5000)
+    return () => clearInterval(t)
+  }, [canControl, youtubeId, ytPlayerReady, liveRoom.isPlaying, onUpdateVideo])
+
+  useEffect(() => {
+    if (nativeYoutube) return
     function onMsg(e: MessageEvent) {
       if (!e.data?.type?.startsWith?.('YT_')) return
       handleYtEvent(e.data as YtEvent)
     }
     window.addEventListener('message', onMsg)
     return () => window.removeEventListener('message', onMsg)
-  }, [handleYtEvent])
+  }, [handleYtEvent, nativeYoutube])
 
-  const youtubeId = useMemo(() => extractYouTubeId(liveRoom.videoUrl), [liveRoom.videoUrl])
+  useEffect(() => {
+    if (modalBlocksYtView) hideYtBrowserViewNow()
+  }, [modalBlocksYtView])
 
   useEffect(() => {
     if (!liveRoom.isPlaying || !youtubeId) return
@@ -418,7 +582,7 @@ export default function WatchRoomScreen({
 
   const expectedPosSec = useMemo(() => {
     void driftTick
-    const elapsed = liveRoom.isPlaying ? Math.max(0, Date.now() - liveRoom.updatedAt) : 0
+    const elapsed = liveRoom.isPlaying ? Math.max(0, serverNow() - liveRoom.updatedAt) : 0
     return (liveRoom.currentPositionMs + elapsed) / 1000
   }, [liveRoom.isPlaying, liveRoom.currentPositionMs, liveRoom.updatedAt, driftTick])
 
@@ -428,17 +592,8 @@ export default function WatchRoomScreen({
   )
 
   const handleResync = useCallback(() => {
-    const playing = liveRoom.isPlaying
-    const elapsed = playing ? Math.max(0, Date.now() - liveRoom.updatedAt) : 0
-    const pos = (liveRoom.currentPositionMs + elapsed) / 1000
-    postYtCmd(playing ? 'play' : 'pause', pos)
-  }, [liveRoom.isPlaying, liveRoom.currentPositionMs, liveRoom.updatedAt, postYtCmd])
-
-  // Eski BrowserView kalıntısını kapat — yalnızca iframe kullanıyoruz
-  useEffect(() => {
-    hideYtBrowserViewNow()
-    return () => { hideYtBrowserViewNow() }
-  }, [])
+    applyRemoteToPlayer(liveRoom.isPlaying, roomPosSec(liveRoom), true, true)
+  }, [liveRoom, applyRemoteToPlayer, roomPosSec])
 
   // Presence
   useEffect(() => {
@@ -467,6 +622,17 @@ export default function WatchRoomScreen({
     document.addEventListener('fullscreenchange', onFsChange)
     return () => document.removeEventListener('fullscreenchange', onFsChange)
   }, [])
+
+  useEffect(() => {
+    if (!isFullscreen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape' && document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {})
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isFullscreen])
 
   function toggleFullscreen() {
     const el = videoAreaRef.current
@@ -551,6 +717,7 @@ export default function WatchRoomScreen({
     <div className="watch-room">
       <div className="watch-room__stage-col">
         <RoomHeader
+          ref={headerRef}
           roomTitle={roomTitle}
           roomId={roomId}
           onlineUids={onlineUids}
@@ -590,6 +757,9 @@ export default function WatchRoomScreen({
           onStartPoll={() => setShowPollDialog(true)}
           onOpenQueue={() => setShowQueue(true)}
           queueCount={liveRoom.queue?.length ?? 0}
+          onMenuOpenChange={handleHeaderMenuOpenChange}
+          onChromePointerEnter={handleHeaderPointerEnter}
+          onChromePointerLeave={handleHeaderPointerLeave}
         />
 
         {liveRoom.pinnedMessage && (
@@ -613,6 +783,9 @@ export default function WatchRoomScreen({
 
         <VideoStage
           areaRef={videoAreaRef}
+          ytSlotRef={ytSlotRef}
+          ytBarRef={ytBarRef}
+          nativeYoutube={nativeYoutube}
           iframeRef={iframeRef}
           sharingScreen={sharingScreen}
           screenTrackMuted={screenTrackMuted}
@@ -852,11 +1025,7 @@ export default function WatchRoomScreen({
                             className="btn-icon"
                             style={{ fontSize: 11, padding: '4px 8px' }}
                             title={t('watch_transfer_host')}
-                            onClick={() => {
-                              if (!confirm(t('watch_transfer_host_confirm', name))) return
-                              void onTransferHost(uid)
-                              showToast(t('toast_host_transferred'), 'success')
-                            }}
+                            onClick={() => setHostTransferTarget({ uid, name })}
                           >
                             👑
                           </button>
@@ -953,6 +1122,49 @@ export default function WatchRoomScreen({
               <button className="btn-secondary" onClick={() => setShowLeaveConfirm(false)}>{t('common_cancel')}</button>
               <button className="btn-primary danger" onClick={() => { setShowLeaveConfirm(false); exitRoom(onLeaveRoom) }}>{t('common_yes_leave')}</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {hostTransferTarget && (
+        <div className="modal-overlay" onClick={() => setHostTransferTarget(null)}>
+          <div className="modal modal--confirm" onClick={(e) => e.stopPropagation()}>
+            <div className="host-transfer-modal">
+              <div className="host-transfer-modal__avatar">
+                {(hostTransferTarget.name[0] ?? '?').toUpperCase()}
+              </div>
+              <h3>👑 {t('watch_transfer_host_title')}</h3>
+              <p className="modal-confirm-body">
+                {t('watch_transfer_host_body', hostTransferTarget.name)}
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button type="button" className="btn-secondary" onClick={() => setHostTransferTarget(null)}>
+                {t('common_cancel')}
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => {
+                  const target = hostTransferTarget
+                  setHostTransferTarget(null)
+                  setShowMembers(false)
+                  void onTransferHost(target.uid)
+                  showToast(t('toast_host_transferred'), 'success')
+                }}
+              >
+                {t('watch_transfer_host')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {voiceJoining && (
+        <div className="voice-join-overlay" role="status" aria-live="polite">
+          <div className="voice-join-overlay__card">
+            <div className="voice-join-overlay__spinner" aria-hidden />
+            <p>{t('watch_voice_connecting')}</p>
           </div>
         </div>
       )}

@@ -47,6 +47,9 @@ function ScreenShareVideo({ stream, label }: { stream: MediaStream; label: strin
 
 export interface VideoStageProps {
   areaRef: RefObject<HTMLDivElement | null>
+  ytSlotRef?: RefObject<HTMLDivElement | null>
+  ytBarRef?: RefObject<HTMLDivElement | null>
+  nativeYoutube?: boolean
   iframeRef: RefObject<HTMLIFrameElement | null>
   sharingScreen: boolean
   screenTrackMuted: boolean
@@ -82,7 +85,7 @@ function formatClock(sec: number): string {
 }
 
 export default function VideoStage({
-  areaRef, iframeRef, sharingScreen, screenTrackMuted,
+  areaRef, ytSlotRef, ytBarRef, nativeYoutube = false, iframeRef, sharingScreen, screenTrackMuted,
   remoteImgRef, remoteStream, someoneElseSharing, screenConnecting,
   sharerName, videoUrl, youtubeId, videoVersion, canControl, canAddVideo, onAddVideo,
   floatingReaction, isFullscreen, onToggleFullscreen, onIframeLoad,
@@ -134,7 +137,9 @@ export default function VideoStage({
       </div>
     )
   } else if (ytSrc) {
-    content = (
+    content = nativeYoutube ? (
+      <div className="video-stage__native-yt" aria-hidden />
+    ) : (
       <iframe
         ref={iframeRef}
         key={`yt-${youtubeId}-${videoVersion}`}
@@ -161,7 +166,7 @@ export default function VideoStage({
 
   return (
     <section className="video-stage" ref={areaRef}>
-      <div className="video-stage__player">
+      <div className="video-stage__player" ref={ytSlotRef}>
         {content}
         {ytError && (
           <div className="video-stage__yt-error" role="alert">
@@ -195,7 +200,7 @@ export default function VideoStage({
           </div>
         </div>
       )}
-      <div className="video-stage__bar">
+      <div className="video-stage__bar" ref={ytBarRef}>
         {floatingReaction && (
           <span key={floatingReaction.key} className="video-stage__reaction">
             {floatingReaction.emoji}

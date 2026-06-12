@@ -8,17 +8,19 @@ export interface YtViewBounds {
 }
 
 export interface YtViewEvent {
-  type: 'YT_READY' | 'YT_STATE' | 'YT_ERROR'
+  type: 'YT_READY' | 'YT_STATE' | 'YT_ERROR' | 'YT_ENDED' | 'YT_PROGRESS'
   state?: number
   time?: number
   code?: number
+  current?: number
+  duration?: number
 }
 
 interface YtViewAPI {
   show: (url: string, bounds: YtViewBounds) => Promise<void>
   hide: () => Promise<void>
   setBounds: (bounds: YtViewBounds) => Promise<void>
-  sendCmd: (cmd: { cmd: 'play' | 'pause' | 'seek'; pos: number }) => Promise<void>
+  sendCmd: (cmd: { cmd: 'play' | 'pause' | 'seek' | 'applyRemote'; pos: number; force?: boolean; doSeek?: boolean; isPlaying?: boolean }) => Promise<void>
   reload: (url: string) => Promise<void>
   onEvent: (cb: (data: YtViewEvent) => void) => () => void
 }
@@ -27,13 +29,22 @@ function getYtViewApi(): YtViewAPI | null {
   return (window as { electronAPI?: { ytView?: YtViewAPI } }).electronAPI?.ytView ?? null
 }
 
-function measureBounds(el: HTMLElement): YtViewBounds {
+function measureBounds(el: HTMLElement, minTop = 0, maxBottom = 0): YtViewBounds {
   const rect = el.getBoundingClientRect()
+  let y = Math.round(rect.top)
+  let height = Math.round(rect.height)
+  if (minTop > 0 && y < minTop) {
+    height -= minTop - y
+    y = minTop
+  }
+  if (maxBottom > 0 && y + height > maxBottom) {
+    height = maxBottom - y
+  }
   return {
     x: Math.round(rect.left),
-    y: Math.round(rect.top),
+    y,
     width: Math.round(rect.width),
-    height: Math.round(rect.height)
+    height: Math.max(0, height)
   }
 }
 
@@ -50,6 +61,10 @@ export function useYtBrowserView(opts: {
   active: boolean
   url: string | null
   slotRef: React.RefObject<HTMLElement | null>
+  /** Üst bar (room-header) altına taşmayı kes — BrowserView native katmandır. */
+  clipTopRef?: React.RefObject<HTMLElement | null>
+  /** Alt kontrol şeridi üstünde bitir (fullscreen vb.). */
+  clipBottomRef?: React.RefObject<HTMLElement | null>
   onEvent: (event: YtViewEvent) => void
 }) {
   const api = getYtViewApi()
@@ -61,17 +76,46 @@ export function useYtBrowserView(opts: {
   const onEventRef = useRef(opts.onEvent)
   onEventRef.current = opts.onEvent
 
+  const clipLimits = useCallback(() => {
+    const fsEl = document.fullscreenElement
+    const slot = opts.slotRef.current
+    if (fsEl && slot && fsEl.contains(slot)) {
+      return { minTop: 0, maxBottom: 0 }
+    }
+    const minTop = opts.clipTopRef?.current
+      ? Math.round(opts.clipTopRef.current.getBoundingClientRect().bottom)
+      : 0
+    const maxBottom = opts.clipBottomRef?.current
+      ? Math.round(opts.clipBottomRef.current.getBoundingClientRect().top)
+      : 0
+    return { minTop, maxBottom }
+  }, [opts.clipTopRef, opts.clipBottomRef, opts.slotRef])
+
   const syncBounds = useCallback(() => {
     const el = opts.slotRef.current
     if (!api || !visibleRef.current || !el) return
-    const bounds = measureBounds(el)
+    const { minTop, maxBottom } = clipLimits()
+    const bounds = measureBounds(el, minTop, maxBottom)
     if (bounds.width < 2 || bounds.height < 2) return
     api.setBounds(bounds).catch(() => {})
-  }, [api, opts.slotRef])
+  }, [api, opts.slotRef, clipLimits])
 
-  const postCmd = useCallback((cmd: 'play' | 'pause' | 'seek', pos: number) => {
+  const syncBoundsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const scheduleSyncBounds = useCallback(() => {
+    if (syncBoundsTimerRef.current) clearTimeout(syncBoundsTimerRef.current)
+    syncBoundsTimerRef.current = setTimeout(() => {
+      syncBoundsTimerRef.current = null
+      syncBounds()
+    }, 48)
+  }, [syncBounds])
+
+  const postCmd = useCallback((cmd: 'play' | 'pause' | 'seek' | 'applyRemote', pos: number, opts?: { force?: boolean; doSeek?: boolean; isPlaying?: boolean }) => {
     if (!api) return
-    api.sendCmd({ cmd, pos }).catch(() => {})
+    if (cmd === 'applyRemote') {
+      api.sendCmd({ cmd, pos, isPlaying: opts?.isPlaying, doSeek: opts?.doSeek, force: opts?.force }).catch(() => {})
+      return
+    }
+    api.sendCmd({ cmd, pos, force: opts?.force, doSeek: opts?.doSeek }).catch(() => {})
   }, [api])
 
   const hideView = useCallback(() => {
@@ -92,7 +136,8 @@ export function useYtBrowserView(opts: {
       return
     }
 
-    const bounds = measureBounds(el)
+    const { minTop, maxBottom } = clipLimits()
+    const bounds = measureBounds(el, minTop, maxBottom)
     if (bounds.width < 2 || bounds.height < 2) return
 
     const gen = showGenRef.current
@@ -111,11 +156,11 @@ export function useYtBrowserView(opts: {
     } else if (urlRef.current !== opts.url) {
       urlRef.current = opts.url
       api.reload(opts.url!).catch(() => {})
-      syncBounds()
+      scheduleSyncBounds()
     } else {
-      syncBounds()
+      scheduleSyncBounds()
     }
-  }, [api, opts.active, opts.url, opts.slotRef, syncBounds, hideView])
+  }, [api, opts.active, opts.url, opts.slotRef, scheduleSyncBounds, hideView, clipLimits])
 
   // Boyut / layout değişimlerini izle
   useEffect(() => {
@@ -123,20 +168,25 @@ export function useYtBrowserView(opts: {
     const el = opts.slotRef.current
     if (!el) return
 
-    const ro = new ResizeObserver(() => syncBounds())
+    const ro = new ResizeObserver(() => scheduleSyncBounds())
     ro.observe(el)
+    const clipTop = opts.clipTopRef?.current
+    const clipBottom = opts.clipBottomRef?.current
+    if (clipTop) ro.observe(clipTop)
+    if (clipBottom) ro.observe(clipBottom)
 
-    const onWinResize = () => syncBounds()
+    const onWinResize = () => scheduleSyncBounds()
     window.addEventListener('resize', onWinResize)
-    const onFs = () => setTimeout(syncBounds, 50)
+    const onFs = () => setTimeout(scheduleSyncBounds, 50)
     document.addEventListener('fullscreenchange', onFs)
 
     return () => {
       ro.disconnect()
       window.removeEventListener('resize', onWinResize)
       document.removeEventListener('fullscreenchange', onFs)
+      if (syncBoundsTimerRef.current) clearTimeout(syncBoundsTimerRef.current)
     }
-  }, [api, opts.active, opts.slotRef, syncBounds])
+  }, [api, opts.active, opts.slotRef, opts.clipTopRef, opts.clipBottomRef, scheduleSyncBounds])
 
   // YT olaylarını dinle
   useEffect(() => {

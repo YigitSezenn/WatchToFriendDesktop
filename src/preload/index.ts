@@ -28,12 +28,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
     hide: () => ipcRenderer.invoke('yt-view:hide'),
     setBounds: (bounds: { x: number; y: number; width: number; height: number }) =>
       ipcRenderer.invoke('yt-view:set-bounds', bounds),
-    sendCmd: (cmd: { cmd: string; pos: number }) => ipcRenderer.invoke('yt-view:cmd', cmd),
+    sendCmd: (cmd: { cmd: string; pos: number; force?: boolean; doSeek?: boolean; isPlaying?: boolean }) => ipcRenderer.invoke('yt-view:cmd', cmd),
     reload: (url: string) => ipcRenderer.invoke('yt-view:reload', url),
     onEvent: (cb: (data: Record<string, unknown>) => void) => {
       const listener = (_event: Electron.IpcRendererEvent, data: Record<string, unknown>) => cb(data)
       ipcRenderer.on('yt-view:event', listener)
       return () => ipcRenderer.removeListener('yt-view:event', listener)
+    }
+  },
+  notifications: {
+    show: (payload: { title: string; body: string; data: Record<string, unknown> }) =>
+      ipcRenderer.invoke('notification:show', payload),
+    setBadge: (count: number) => ipcRenderer.invoke('notification:set-badge', count),
+    onClick: (cb: (data: Record<string, unknown>) => void) => {
+      const listener = (_event: Electron.IpcRendererEvent, data: Record<string, unknown>) => cb(data)
+      ipcRenderer.on('notification:click', listener)
+      return () => ipcRenderer.removeListener('notification:click', listener)
     }
   }
 })

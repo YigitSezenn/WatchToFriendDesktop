@@ -38,9 +38,12 @@ interface Props {
   queueCount?: number
   hasVideo?: boolean
   screenSharing?: boolean
+  onMenuOpenChange?: (open: boolean) => void
+  onChromePointerEnter?: () => void
+  onChromePointerLeave?: () => void
 }
 
-export default function RoomHeader({
+export default React.forwardRef<HTMLElement, Props>(function RoomHeader({
   roomTitle, roomId, onlineUids, presenceNames, speakingUids, myUid,
   canControl, isHost, discoverable,
   inVoice = false, voiceMuted = false, voiceListenOnly = false,
@@ -50,8 +53,9 @@ export default function RoomHeader({
   onResync, onToggleVideoHidden, onToggleChat, onToggleChatSearch,
   onJoinVoice, onLeaveVoice, onToggleVoiceMute, onStartPoll, onOpenQueue,
   queueCount = 0,
-  hasVideo = false, screenSharing = false
-}: Props) {
+  hasVideo = false, screenSharing = false,
+  onMenuOpenChange, onChromePointerEnter, onChromePointerLeave
+}, ref) {
   const { t } = useLocale()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuWrapRef = useRef<HTMLDivElement>(null)
@@ -69,11 +73,25 @@ export default function RoomHeader({
 
   function closeAnd(fn?: () => void) {
     setMenuOpen(false)
+    onMenuOpenChange?.(false)
     fn?.()
   }
 
+  function toggleMenu() {
+    setMenuOpen((open) => {
+      const next = !open
+      onMenuOpenChange?.(next)
+      return next
+    })
+  }
+
   return (
-    <header className="room-header">
+    <header
+      className="room-header"
+      ref={ref}
+      onPointerEnter={onChromePointerEnter}
+      onPointerLeave={onChromePointerLeave}
+    >
       <button type="button" className="room-header__back" onClick={onBack}>
         ← {t('common_back')}
       </button>
@@ -130,7 +148,7 @@ export default function RoomHeader({
           className="room-header__menu-btn"
           aria-expanded={menuOpen}
           aria-haspopup="menu"
-          onClick={() => setMenuOpen((v) => !v)}
+          onClick={toggleMenu}
         >
           ⋮
         </button>
@@ -202,4 +220,4 @@ export default function RoomHeader({
       </div>
     </header>
   )
-}
+})

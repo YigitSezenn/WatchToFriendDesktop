@@ -4,10 +4,15 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword,
+  deleteUser
 } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase/config'
+import { purgeUserData } from '../utils/accountDelete'
 import type { User } from '../types'
 
 function authProfileUser(firebaseUser: {
@@ -53,7 +58,8 @@ export function useAuth() {
           await setDoc(doc(db, 'users', firebaseUser.uid), {
             email: profile.email,
             displayName: profile.displayName,
-            friendIds: []
+            friendIds: [],
+            uid: firebaseUser.uid
           }, { merge: true })
           setUser(profile)
         }
@@ -70,7 +76,7 @@ export function useAuth() {
   async function register(email: string, password: string, displayName: string) {
     const cred = await createUserWithEmailAndPassword(auth, email, password)
     await updateProfile(cred.user, { displayName })
-    const userData = { email, displayName, friendIds: [] }
+    const userData = { email, displayName, friendIds: [], uid: cred.user.uid }
     await setDoc(doc(db, 'users', cred.user.uid), userData)
     setUser({ uid: cred.user.uid, ...userData })
   }
@@ -84,5 +90,24 @@ export function useAuth() {
     setUser(null)
   }
 
-  return { user, loading, register, login, logout }
+  async function changePassword(currentPassword: string, newPassword: string) {
+    const firebaseUser = auth.currentUser
+    if (!firebaseUser?.email) throw new Error('auth_required')
+    if (newPassword.length < 6) throw new Error('weak_password')
+    const cred = EmailAuthProvider.credential(firebaseUser.email, currentPassword)
+    await reauthenticateWithCredential(firebaseUser, cred)
+    await updatePassword(firebaseUser, newPassword)
+  }
+
+  async function deleteAccount(password: string, friendIds: string[]) {
+    const firebaseUser = auth.currentUser
+    if (!firebaseUser?.email) throw new Error('auth_required')
+    const cred = EmailAuthProvider.credential(firebaseUser.email, password)
+    await reauthenticateWithCredential(firebaseUser, cred)
+    setUser(null)
+    await purgeUserData(firebaseUser.uid, friendIds)
+    await deleteUser(firebaseUser)
+  }
+
+  return { user, loading, register, login, logout, changePassword, deleteAccount }
 }

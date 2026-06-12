@@ -28,7 +28,7 @@ export function useDm(myUid: string) {
     return onSnapshot(
       q,
       (snap) => {
-        const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as DmConversation)
+        const list = snap.docs.map((d) => ({ ...d.data(), id: d.id }) as DmConversation)
         list.sort((a, b) => b.lastMessageAt - a.lastMessageAt)
         setConversations(list)
       },

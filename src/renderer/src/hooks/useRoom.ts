@@ -6,6 +6,7 @@ import {
   type Transaction, type DocumentReference
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
+import { deleteDmConversationBetween } from '../utils/dmDelete'
 import type { Room, Message, Request, User, QueueItem, YtSearchResult } from '../types'
 import { fetchVideoTitle } from '../utils/youtubeSearch'
 import { fetchServerOffset, serverNow } from '../utils/serverClock'
@@ -197,7 +198,7 @@ export function useRoom(uid: string) {
 
   async function updateVideoState(roomId: string, isPlaying: boolean, currentPositionMs: number) {
     await updateDoc(doc(db, 'rooms', roomId), {
-      isPlaying, currentPositionMs, updatedAt: Date.now(), lastUpdatedBy: uid
+      isPlaying, currentPositionMs, updatedAt: serverNow(), lastUpdatedBy: uid
     })
   }
 
@@ -480,6 +481,11 @@ export function useRoom(uid: string) {
   async function removeFriend(friendUid: string) {
     await updateDoc(doc(db, 'users', uid), { friendIds: arrayRemove(friendUid) })
     await updateDoc(doc(db, 'users', friendUid), { friendIds: arrayRemove(uid) })
+    try {
+      await deleteDmConversationBetween(uid, friendUid)
+    } catch {
+      /* DM yoksa veya silme izni yoksa arkadaşlık yine kaldırılmış olur */
+    }
   }
 
   // ── Engelleme ──────────────────────────────────────────────────────────────

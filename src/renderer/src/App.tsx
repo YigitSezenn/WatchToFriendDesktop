@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { doc, onSnapshot, getDoc } from 'firebase/firestore'
 import { db } from './firebase/config'
 import { useAuth } from './hooks/useAuth'
@@ -21,13 +21,15 @@ import { useTheme } from './hooks/useTheme'
 import { useLocale } from './hooks/useLocale'
 import { showToast } from './utils/toast'
 import { recordRoomSession, shouldPromptRating, openRatePage } from './utils/ratingPref'
+import { totalDmUnread } from './utils/formatBadge'
+import { useNotifications, type NotificationNavigateAction, type NotifScreen } from './hooks/useNotifications'
 import type { User } from './types'
 
 type Screen = 'home' | 'create' | 'join' | 'watch' | 'dm' | 'admin'
 
 export default function App() {
   useTheme()
-  const { user: authUser, loading, login, register, logout } = useAuth()
+  const { user: authUser, loading, login, register, logout, changePassword, deleteAccount } = useAuth()
   const [screen, setScreen] = useState<Screen>('home')
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [activeDmUid, setActiveDmUid] = useState<string | null>(null)
@@ -40,6 +42,8 @@ export default function App() {
   const [showTour, setShowTour] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [bootSplash, setBootSplash] = useState(true)
+  const [homeTabOverride, setHomeTabOverride] = useState<'rooms' | 'discover' | 'friends' | 'dm' | null>(null)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const { t } = useLocale()
 
   useEffect(() => {
@@ -48,7 +52,10 @@ export default function App() {
   }, [])
 
   useEffect(() => {
-    if (!authUser?.uid) return
+    if (!authUser?.uid) {
+      setFullUser(null)
+      return
+    }
     return onSnapshot(
       doc(db, 'users', authUser.uid),
       (snap) => {
@@ -66,7 +73,7 @@ export default function App() {
     )
   }, [authUser?.uid])
 
-  const user = fullUser ?? authUser
+  const user = authUser ? (fullUser ?? authUser) : null
   const isAdmin = isAdminUser(user?.email)
 
   useEffect(() => {
@@ -81,7 +88,9 @@ export default function App() {
     recordRoomSession()
   }
 
-  const roomHook = useRoom(user?.uid ?? '')
+  const sessionUid = isDeletingAccount ? '' : (user?.uid ?? '')
+
+  const roomHook = useRoom(sessionUid)
   const {
     rooms, publicRooms, friends, incomingRequests,
     createRoom, joinRoom, deleteRoom, leaveRoom,
@@ -91,21 +100,21 @@ export default function App() {
     addUrlToQueue, addSearchResultToQueue, playFromQueue, advanceQueue, removeFromQueue,
     useMessages, sendMessage, toggleMessageReaction,
     setModerator, transferHost,
-    sendFriendRequest, sendRoomInvite, acceptRequest, rejectRequest,
+    sendFriendRequest, sendRoomInvite, acceptRequest, rejectRequest, removeFriend,
     blockUser, unblockUser
   } = roomHook
 
-  const dmHook = useDm(user?.uid ?? '')
+  const dmHook = useDm(sessionUid)
   const { conversations, useMessages: useDmMessages, openOrCreateDm,
     sendMessage: sendDm, deleteMessage: deleteDmMsg, toggleReaction, clearUnread } = dmHook
 
-  const profileHook = useProfile(user?.uid ?? '')
+  const profileHook = useProfile(sessionUid)
   const { ensureFriendCode, updateDisplayName, updatePhoto, removePhoto, useHistory, deleteHistory } = profileHook
   const history = useHistory()
 
   // useMemo: her render'da yeniden hesaplanmayı önle (büyük liste filtreleri)
   const totalUnread = useMemo(
-    () => conversations.reduce((s, c) => s + (c.unreadCount?.[user?.uid ?? ''] ?? 0), 0),
+    () => totalDmUnread(conversations, user?.uid ?? ''),
     [conversations, user?.uid]
   )
   // Live listeden gelirse pendingRoom artık gerek yok
@@ -165,12 +174,77 @@ export default function App() {
     openInviteJoin(stored)
   }, [user])
 
+  const pendingCount = incomingRequests.length
+
   async function handleOpenDm(friendUid: string) {
     const friend = friends.find((f) => f.uid === friendUid)
     if (!friend || !user) return
     const id = await openOrCreateDm(friendUid, user.displayName, friend.displayName, user.photoBase64 ?? '', friend.photoBase64 ?? '')
     setActiveDmId(id); setActiveDmUid(friendUid); setScreen('dm')
   }
+
+  async function handleDeleteAccount(password: string) {
+    if (!user) return
+    setIsDeletingAccount(true)
+    setShowProfile(false)
+    setScreen('home')
+    setActiveRoomId(null)
+    setActiveDmId(null)
+    setActiveDmUid(null)
+    try {
+      await deleteAccount(password, user.friendIds ?? [])
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
+  async function handleRemoveFriend(friendUid: string) {
+    try {
+      await removeFriend(friendUid)
+      if (activeDmUid === friendUid) {
+        setActiveDmId(null)
+        setActiveDmUid(null)
+        setScreen('home')
+      }
+    } catch {
+      showToast(t('toast_remove_friend_failed'), 'error')
+    }
+  }
+
+  const handleNotifNavigate = useCallback((action: NotificationNavigateAction) => {
+    if (action.type === 'friend') {
+      setScreen('home')
+      setHomeTabOverride('friends')
+      return
+    }
+    if (action.type === 'room_invite') {
+      setScreen('home')
+      setHomeTabOverride('friends')
+      return
+    }
+    if (action.type === 'dm' && action.friendUid) {
+      void handleOpenDm(action.friendUid)
+      return
+    }
+    if (action.type === 'room_message' && action.roomId) {
+      setActiveRoomId(action.roomId)
+      setScreen('watch')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [friends, user?.uid])
+
+  useNotifications({
+    uid: sessionUid,
+    screen: screen as NotifScreen,
+    activeRoomId,
+    activeDmId,
+    conversations,
+    incomingRequests,
+    rooms,
+    totalUnread,
+    pendingCount,
+    onNavigate: handleNotifNavigate
+  })
 
   async function handleAcceptRequest(req: import('./types').Request) {
     await acceptRequest(req)
@@ -273,6 +347,8 @@ export default function App() {
           <ProfileModal user={user} history={history}
             onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
             onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
+            onDeleteAccount={handleDeleteAccount}
+            onChangePassword={(cur, neu) => changePassword(cur, neu)}
             onReplayTour={() => setShowTour(true)}
             onOpenHelp={() => setShowHelp(true)}
             onClose={() => setShowProfile(false)} />
@@ -302,7 +378,7 @@ export default function App() {
           onDelete={(msgId) => deleteDmMsg(activeDmId, msgId)}
           onReaction={(msgId, emoji) => toggleReaction(activeDmId, msgId, emoji)}
           onClearUnread={() => clearUnread(activeDmId)}
-          onBack={() => setScreen('home')}
+          onBack={() => { setActiveDmId(null); setActiveDmUid(null); setScreen('home') }}
         />
         {showTour && <FirstLaunchTour onDone={() => setShowTour(false)} />}
         {showHelp && <HelpModal t={t} onClose={() => setShowHelp(false)} />}
@@ -311,6 +387,8 @@ export default function App() {
           <ProfileModal user={user} history={history}
             onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
             onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
+            onDeleteAccount={handleDeleteAccount}
+            onChangePassword={(cur, neu) => changePassword(cur, neu)}
             onReplayTour={() => setShowTour(true)}
             onOpenHelp={() => setShowHelp(true)}
             onClose={() => setShowProfile(false)} />
@@ -329,6 +407,8 @@ export default function App() {
         incomingRequests={incomingRequests}
         dmConversations={conversations}
         totalUnread={totalUnread}
+        tabOverride={homeTabOverride}
+        onTabOverrideConsumed={() => setHomeTabOverride(null)}
         onCreateRoom={() => setScreen('create')}
         onJoinRoom={() => setScreen('join')}
         onOpenRoom={(id) => { setActiveRoomId(id); setScreen('watch') }}
@@ -359,6 +439,7 @@ export default function App() {
         onAcceptRequest={handleAcceptRequest}
         onRejectRequest={rejectRequest}
         onOpenDm={handleOpenDm}
+        onRemoveFriend={handleRemoveFriend}
         onOpenProfile={() => setShowProfile(true)}
         isAdmin={isAdmin}
         onOpenAdmin={() => setScreen('admin')}
@@ -381,6 +462,8 @@ export default function App() {
         <ProfileModal user={user} history={history}
           onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
           onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
+          onDeleteAccount={handleDeleteAccount}
+          onChangePassword={(cur, neu) => changePassword(cur, neu)}
           onReplayTour={() => setShowTour(true)}
           onOpenHelp={() => setShowHelp(true)}
           onClose={() => setShowProfile(false)} />

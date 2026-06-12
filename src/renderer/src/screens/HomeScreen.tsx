@@ -1,8 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocale } from '../hooks/useLocale'
 import BrandLogo from '../components/BrandLogo'
 import { photoSrc } from '../utils/photo'
+import { formatBadgeCount, getUnreadForUser } from '../utils/formatBadge'
 import type { Room, User, Request, DmConversation } from '../types'
+
+export type HomeTab = 'rooms' | 'discover' | 'friends' | 'dm'
 
 interface Props {
   currentUser: User
@@ -12,6 +15,8 @@ interface Props {
   incomingRequests: Request[]
   dmConversations: DmConversation[]
   totalUnread: number
+  tabOverride?: HomeTab | null
+  onTabOverrideConsumed?: () => void
   onCreateRoom: () => void
   onJoinRoom: () => void
   onOpenRoom: (roomId: string) => void
@@ -23,6 +28,7 @@ interface Props {
   onAcceptRequest: (req: Request) => void
   onRejectRequest: (reqId: string) => void
   onOpenDm: (friendUid: string) => void
+  onRemoveFriend: (friendUid: string) => void | Promise<void>
   onOpenProfile: () => void
   isAdmin?: boolean
   onOpenAdmin?: () => void
@@ -32,15 +38,24 @@ interface Props {
 export default function HomeScreen({
   currentUser, rooms, publicRooms, friends, incomingRequests,
   dmConversations, totalUnread,
+  tabOverride, onTabOverrideConsumed,
   onCreateRoom, onJoinRoom, onOpenRoom, onJoinPublicRoom, onDeleteRoom, onLeaveRoom,
   onTogglePublic, onSendFriendRequest, onAcceptRequest, onRejectRequest,
-  onOpenDm, onOpenProfile, isAdmin = false, onOpenAdmin, onLogout
+  onOpenDm, onRemoveFriend, onOpenProfile, isAdmin = false, onOpenAdmin, onLogout
 }: Props) {
   const { t, dateLocale } = useLocale()
-  const [tab, setTab] = useState<'rooms' | 'discover' | 'friends' | 'dm'>('rooms')
+  const [tab, setTab] = useState<HomeTab>('rooms')
   const [friendInput, setFriendInput] = useState('')
+
+  useEffect(() => {
+    if (tabOverride) {
+      setTab(tabOverride)
+      onTabOverrideConsumed?.()
+    }
+  }, [tabOverride, onTabOverrideConsumed])
   const [friendMsg, setFriendMsg] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [friendToRemove, setFriendToRemove] = useState<User | null>(null)
   const [passwordRoom, setPasswordRoom] = useState<Room | null>(null)
   const [passwordInput, setPasswordInput] = useState('')
 
@@ -54,6 +69,8 @@ export default function HomeScreen({
   }
 
   const pendingCount = incomingRequests.length
+  const friendsBadge = formatBadgeCount(pendingCount)
+  const dmBadge = formatBadgeCount(totalUnread)
   const sectionTitle = tab === 'rooms' ? t('tab_rooms')
     : tab === 'discover' ? t('tab_discover')
     : tab === 'friends' ? t('tab_friends')
@@ -82,16 +99,19 @@ export default function HomeScreen({
         <button className={`rail-btn ${tab === 'rooms' ? 'active' : ''}`} onClick={() => setTab('rooms')} title={t('tab_rooms')}>🏠</button>
         <button className={`rail-btn ${tab === 'discover' ? 'active' : ''}`} onClick={() => setTab('discover')} title={t('tab_discover')}>
           🌍
-          {publicRooms.length > 0 && <span className="rail-badge">{publicRooms.length}</span>}
         </button>
-        <button className={`rail-btn ${tab === 'friends' ? 'active' : ''}`} onClick={() => setTab('friends')} title={t('tab_friends')}>
-          👥
-          {pendingCount > 0 && <span className="rail-badge">{pendingCount}</span>}
-        </button>
-        <button className={`rail-btn ${tab === 'dm' ? 'active' : ''}`} onClick={() => setTab('dm')} title={t('tab_messages')}>
-          💬
-          {totalUnread > 0 && <span className="rail-badge">{totalUnread}</span>}
-        </button>
+        <div className="rail-btn-wrap">
+          <button className={`rail-btn ${tab === 'friends' ? 'active' : ''}`} onClick={() => setTab('friends')} title={t('tab_friends')}>
+            👥
+          </button>
+          {friendsBadge && <span className="rail-badge">{friendsBadge}</span>}
+        </div>
+        <div className="rail-btn-wrap">
+          <button className={`rail-btn ${tab === 'dm' ? 'active' : ''}`} onClick={() => setTab('dm')} title={t('tab_messages')}>
+            💬
+          </button>
+          {dmBadge && <span className="rail-badge">{dmBadge}</span>}
+        </div>
         <div className="rail-spacer" />
         {isAdmin && onOpenAdmin && (
           <button className="rail-btn" onClick={onOpenAdmin} title={t('common_admin')}>⚙</button>
@@ -113,6 +133,25 @@ export default function HomeScreen({
             <span style={{ cursor: 'pointer' }} onClick={onOpenProfile}>{currentUser.displayName || t('common_user')}</span>
           </div>
         </header>
+
+        <nav className="home-seg-tabs" aria-label={t('home_nav_aria')}>
+          {([
+            ['rooms', t('tab_rooms'), null],
+            ['discover', t('tab_discover'), null],
+            ['friends', t('tab_friends'), friendsBadge],
+            ['dm', t('tab_messages'), dmBadge]
+          ] as const).map(([id, label, badge]) => (
+            <button
+              key={id}
+              type="button"
+              className={`home-seg-tabs__btn ${tab === id ? 'active' : ''}`}
+              onClick={() => setTab(id)}
+            >
+              <span>{label}</span>
+              {badge && <span className="home-seg-tabs__badge">{badge}</span>}
+            </button>
+          ))}
+        </nav>
 
       {tab === 'rooms' && (
         <div className="tab-content">
@@ -236,7 +275,7 @@ export default function HomeScreen({
                 const otherUid = conv.participantUids.find((u) => u !== currentUser.uid) ?? ''
                 const otherName = conv.participantNames[otherUid] ?? '?'
                 const otherPhoto = conv.participantPhotos?.[otherUid]
-                const unread = conv.unreadCount?.[currentUser.uid] ?? 0
+                const unread = getUnreadForUser(conv.unreadCount, currentUser.uid)
                 return (
                   <div key={conv.id} className="dm-conv-card" onClick={() => onOpenDm(otherUid)}>
                     <div className="friend-avatar" style={{ flexShrink: 0 }}>
@@ -246,10 +285,10 @@ export default function HomeScreen({
                       }
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="friend-name">{otherName}</div>
-                      <div className="dm-last-msg">{conv.lastMessage || t('home_no_messages_yet')}</div>
+                      <div className="friend-name" style={unread > 0 ? { fontWeight: 600 } : undefined}>{otherName}</div>
+                      <div className="dm-last-msg" style={unread > 0 ? { color: 'var(--text)' } : undefined}>{conv.lastMessage || t('home_no_messages_yet')}</div>
                     </div>
-                    {unread > 0 && <span className="badge">{unread}</span>}
+                    {unread > 0 && <span className="badge">{formatBadgeCount(unread)}</span>}
                   </div>
                 )
               })}
@@ -321,6 +360,14 @@ export default function HomeScreen({
                   <button className="btn-secondary" style={{ padding: '6px 12px', fontSize: 12 }} onClick={() => onOpenDm(f.uid)}>
                     💬 {t('home_send_message')}
                   </button>
+                  <button
+                    className="btn-danger"
+                    style={{ padding: '6px 10px', fontSize: 12, marginLeft: 6 }}
+                    onClick={() => setFriendToRemove(f)}
+                    title={t('home_remove_friend')}
+                  >
+                    ✕
+                  </button>
                 </div>
               ))
             )}
@@ -329,6 +376,27 @@ export default function HomeScreen({
       )}
 
       </div>
+
+      {friendToRemove && (
+        <div className="modal-overlay" onClick={() => setFriendToRemove(null)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{t('home_remove_friend_title')}</h3>
+            <p>{t('home_remove_friend_body', friendToRemove.displayName)}</p>
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setFriendToRemove(null)}>{t('common_cancel')}</button>
+              <button
+                className="btn-danger"
+                onClick={() => {
+                  void onRemoveFriend(friendToRemove.uid)
+                  setFriendToRemove(null)
+                }}
+              >
+                {t('common_delete')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
