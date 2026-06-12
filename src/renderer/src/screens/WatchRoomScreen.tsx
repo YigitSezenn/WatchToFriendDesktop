@@ -13,7 +13,7 @@ import { useScreenShare } from '../hooks/useScreenShare'
 import { useVoiceChat } from '../hooks/useVoiceChat'
 import { hideYtBrowserViewNow, isYtBrowserViewAvailable, useYtBrowserView } from '../hooks/useYtBrowserView'
 import { photoSrc } from '../utils/photo'
-import { buildInviteMessage } from '../utils/inviteLink'
+import { buildCopyInviteLink } from '../utils/inviteLink'
 import { useLocale } from '../hooks/useLocale'
 import { showToast } from '../utils/toast'
 import { youtubeErrorMessage } from '../utils/ytError'
@@ -645,7 +645,7 @@ export default function WatchRoomScreen({
   }
 
   function copyInviteLink() {
-    navigator.clipboard.writeText(buildInviteMessage(liveRoom.title, roomId))
+    navigator.clipboard.writeText(buildCopyInviteLink(roomId))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }

@@ -108,33 +108,68 @@
     const WEB_BASE = 'https://watchtofriend.web.app';
     const PKG = 'com.watch.watchtofriend';
 
-function normalizeCode(raw: string): string | null {
-  const code = (raw || '').toUpperCase().trim()
-  if (code.length !== 6) return null
-  if (!/^[A-Z0-9]{6}$/.test(code)) return null
-  return code
-}
+    function normalizeCode(raw) {
+      const code = (raw || '').toUpperCase().trim();
+      if (code.length !== 6) return null;
+      if (!/^[A-Z0-9]{6}$/.test(code)) return null;
+      return code;
+    }
 
-function getCodeFromPath() {
-  const q = new URLSearchParams(location.search).get('code')
-  if (q) {
-    const fromQuery = normalizeCode(q)
-    if (fromQuery) return fromQuery
-  }
-  const parts = location.pathname.split('/').filter(Boolean)
-  const joinIdx = parts.indexOf('join')
-  if (joinIdx >= 0 && parts[joinIdx + 1]) {
-    const fromPath = normalizeCode(parts[joinIdx + 1])
-    if (fromPath) return fromPath
-  }
-  const hrefMatch = location.href.match(/\/join\/([A-Za-z0-9]{6})(?:[/?#]|$)/i)
-  if (hrefMatch?.[1]) return normalizeCode(hrefMatch[1])
-  const hashMatch = location.hash.match(/([A-Za-z0-9]{6})/)
-  if (hashMatch?.[1]) return normalizeCode(hashMatch[1])
-  return null
-}
+    function decodeRepeated(raw) {
+      let text = raw || '';
+      for (let i = 0; i < 3; i++) {
+        try {
+          const next = decodeURIComponent(text);
+          if (next === text) break;
+          text = next;
+        } catch (e) {
+          break;
+        }
+      }
+      return text;
+    }
 
-    const code = getCodeFromPath();
+    function extractCodeFromBlob(raw) {
+      if (!raw) return null;
+      const text = decodeRepeated(String(raw).trim());
+      const direct = normalizeCode(text);
+      if (direct) return direct;
+
+      const patterns = [
+        /[?&]code=([A-Z0-9]{6})/i,
+        /\/join\/([A-Z0-9]{6})/i,
+        /watchtofriend:?\/+\/?join\/+([A-Z0-9]{6})/i,
+        /(?:Kod|Code|Oda kodu):\s*([A-Z0-9]{6})/i,
+        /^([A-Z0-9]{6})/i
+      ];
+      for (const pattern of patterns) {
+        const m = text.match(pattern);
+        if (m && m[1]) {
+          const code = normalizeCode(m[1]);
+          if (code) return code;
+        }
+      }
+      return null;
+    }
+
+    function getCodeFromUrl() {
+      const q = new URLSearchParams(location.search).get('code');
+      if (q) {
+        const fromQuery = extractCodeFromBlob(q);
+        if (fromQuery) return fromQuery;
+      }
+
+      const parts = location.pathname.split('/').filter(Boolean);
+      const joinIdx = parts.indexOf('join');
+      if (joinIdx >= 0 && parts[joinIdx + 1]) {
+        const fromPath = extractCodeFromBlob(parts[joinIdx + 1]);
+        if (fromPath) return fromPath;
+      }
+
+      return extractCodeFromBlob(location.href) || extractCodeFromBlob(location.pathname);
+    }
+
+    const code = getCodeFromUrl();
     const codeEl = document.getElementById('room-code');
     const subtitle = document.getElementById('subtitle');
     const status = document.getElementById('status');
@@ -148,10 +183,10 @@ function getCodeFromPath() {
       document.getElementById('copy-link').disabled = true;
     } else {
       codeEl.textContent = code;
-      const link = WEB_BASE + '/join/' + code;
+      const link = WEB_BASE + '/join?code=' + code;
       const customScheme = 'watchtofriend://join/' + code;
       const httpsIntent =
-        'intent://watchtofriend.web.app/join/' + code +
+        'intent://watchtofriend.web.app/join?code=' + code +
         '#Intent;scheme=https;package=' + PKG + ';end';
       const schemeIntent =
         'intent://join/' + code +
@@ -161,12 +196,12 @@ function getCodeFromPath() {
         status.textContent = 'Uygulama açılıyor…';
         if (isAndroid) {
           window.location.href = httpsIntent;
-          setTimeout(() => { window.location.href = schemeIntent; }, 500);
-          setTimeout(() => { window.location.href = customScheme; }, 1000);
+          setTimeout(function () { window.location.href = schemeIntent; }, 500);
+          setTimeout(function () { window.location.href = customScheme; }, 1000);
         } else {
           window.location.href = customScheme;
         }
-        setTimeout(() => {
+        setTimeout(function () {
           status.textContent = 'Açılmadıysa kodu kopyala: ' + code + ' → uygulama → Odaya Katıl';
         }, 2500);
       }
@@ -177,12 +212,12 @@ function getCodeFromPath() {
         setTimeout(openInApp, 300);
       }
 
-      document.getElementById('copy-link').addEventListener('click', async () => {
+      document.getElementById('copy-link').addEventListener('click', async function () {
         const msg = '🎬 Watch with Friends odasına katıl!\n' + link;
         try {
           await navigator.clipboard.writeText(msg);
           status.textContent = 'Davet linki kopyalandı!';
-        } catch {
+        } catch (e) {
           status.textContent = 'Kopyalanamadı — link: ' + link;
         }
       });

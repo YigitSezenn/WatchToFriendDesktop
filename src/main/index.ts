@@ -17,26 +17,70 @@ function normalizeInviteCode(raw: string): string | null {
   return code
 }
 
+function decodeRepeated(raw: string): string {
+  let text = raw
+  for (let i = 0; i < 3; i++) {
+    try {
+      const next = decodeURIComponent(text)
+      if (next === text) break
+      text = next
+    } catch {
+      break
+    }
+  }
+  return text
+}
+
+function extractCodeFromBlob(raw: string): string | null {
+  if (!raw.trim()) return null
+  const text = decodeRepeated(raw.trim())
+  const direct = normalizeInviteCode(text)
+  if (direct) return direct
+  const patterns = [
+    /[?&]code=([A-Z0-9]{6})/i,
+    /\/join\/([A-Z0-9]{6})/i,
+    /watchtofriend:?\/+\/?join\/+([A-Z0-9]{6})/i,
+    /(?:Kod|Code|Oda kodu):\s*([A-Z0-9]{6})/i,
+    /^([A-Z0-9]{6})/i
+  ]
+  for (const pattern of patterns) {
+    const m = text.match(pattern)
+    if (m?.[1]) {
+      const code = normalizeInviteCode(m[1])
+      if (code) return code
+    }
+  }
+  return null
+}
+
 function parseInviteUrl(url: string): string | null {
   try {
     const parsed = new URL(url)
     const q = parsed.searchParams.get('code')
-    if (q) return normalizeInviteCode(q)
+    if (q) {
+      const fromQuery = extractCodeFromBlob(q)
+      if (fromQuery) return fromQuery
+    }
     if (
       parsed.protocol === 'https:' &&
       (parsed.hostname === 'watchtofriend.app' || parsed.hostname === 'watchtofriend.web.app')
     ) {
       const parts = parsed.pathname.split('/').filter(Boolean)
-      if (parts[0] === 'join' && parts[1]) return normalizeInviteCode(parts[1])
+      if (parts[0] === 'join' && parts[1]) {
+        const fromPath = extractCodeFromBlob(parts[1])
+        if (fromPath) return fromPath
+      }
+      const fromHref = extractCodeFromBlob(parsed.href)
+      if (fromHref) return fromHref
     }
     if (parsed.protocol === 'watchtofriend:' && parsed.hostname === 'join') {
       const path = parsed.pathname.replace(/^\//, '').trim()
-      if (path) return normalizeInviteCode(path)
+      if (path) return extractCodeFromBlob(path)
     }
   } catch {
     // ignore
   }
-  return null
+  return extractCodeFromBlob(url)
 }
 
 let pendingInviteCode: string | null = null
