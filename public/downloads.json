@@ -5,13 +5,13 @@
     "filename": "WatchToFriend-1.4.0.zip",
     "setupExe": "WatchToFriend Setup 1.4.0.exe",
     "host": "watchtofriend.web.app",
-    "updated": "2026-06-11"
+    "updated": "2026-06-12"
   },
   "android": {
     "version": "1.4.0",
     "comingSoon": true,
     "label": "Yakında Google Play'de",
     "url": null,
-    "updated": "2026-06-11"
+    "updated": "2026-06-12"
   }
 }
