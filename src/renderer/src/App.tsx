@@ -29,7 +29,7 @@ type Screen = 'home' | 'create' | 'join' | 'watch' | 'dm' | 'admin'
 
 export default function App() {
   useTheme()
-  const { user: authUser, loading, login, register, logout, changePassword, deleteAccount } = useAuth()
+  const { user: authUser, loading, login, register, loginWithGoogle, resetPassword, logout, changePassword, deleteAccount } = useAuth()
   const [screen, setScreen] = useState<Screen>('home')
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null)
   const [activeDmUid, setActiveDmUid] = useState<string | null>(null)
@@ -262,7 +262,12 @@ export default function App() {
   if (!user) {
     return (
       <>
-        <LoginScreen onLogin={login} onRegister={register} />
+        <LoginScreen
+          onLogin={login}
+          onRegister={register}
+          onGoogleLogin={loginWithGoogle}
+          onResetPassword={resetPassword}
+        />
         <ToastHost />
       </>
     )

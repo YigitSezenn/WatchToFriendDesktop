@@ -101,11 +101,11 @@ if (process.defaultApp) {
 // Uygulama renderer'ı için CSP — YouTube / googlevideo sayfalarına asla enjekte edilmez.
 const APP_RENDERER_CSP =
   "default-src 'self';" +
-  " script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com;" +
-  ` frame-src ${YT_LOCAL_ORIGIN} https://www.youtube.com https://www.youtube-nocookie.com;` +
+  " script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com https://apis.google.com;" +
+  ` frame-src ${YT_LOCAL_ORIGIN} https://www.youtube.com https://www.youtube-nocookie.com https://accounts.google.com https://apis.google.com https://*.firebaseapp.com;` +
   " connect-src 'self' ws://localhost:* ws://127.0.0.1:* wss://localhost:* wss://127.0.0.1:*" +
   " https://*.googleapis.com https://*.googlevideo.com https://*.youtube.com https://www.youtube.com" +
-  " https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;" +
+  " https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://securetoken.googleapis.com;" +
   " img-src 'self' data: https: blob:;" +
   " style-src 'self' 'unsafe-inline';" +
   " media-src 'self' blob: https:;"
@@ -303,6 +303,26 @@ function createWindow(): BrowserWindow {
 
   // Dış linkleri sistem tarayıcısında aç — sadece http/https izni ver
   win.webContents.setWindowOpenHandler(({ url }) => {
+    const isAuthPopup =
+      url.includes('accounts.google.com') ||
+      url.includes('google.com/o/oauth2') ||
+      url.includes('firebaseapp.com/__/auth/') ||
+      url.includes('watchtofriend.firebaseapp.com')
+    if (isAuthPopup) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 520,
+          height: 720,
+          autoHideMenuBar: true,
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            sandbox: true
+          }
+        }
+      }
+    }
     if (url.startsWith('https://') || url.startsWith('http://')) {
       shell.openExternal(url)
     }
