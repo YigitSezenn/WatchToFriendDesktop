@@ -1,4 +1,3 @@
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
 export const INVITE_WEB_BASE = 'https://watchtofriend.web.app'
 const WEB_HOSTS = new Set(['watchtofriend.web.app', 'watchtofriend.app'])
 
@@ -27,7 +26,7 @@ export function buildInviteMessage(roomTitle: string | undefined, roomId: string
 function normalizeCode(raw: string): string | null {
   const code = raw.toUpperCase().trim()
   if (code.length !== 6) return null
-  if (![...code].every((c) => CODE_CHARS.includes(c))) return null
+  if (!/^[A-Z0-9]{6}$/.test(code)) return null
   return code
 }
 

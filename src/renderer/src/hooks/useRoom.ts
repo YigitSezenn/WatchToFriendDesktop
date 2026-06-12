@@ -14,7 +14,8 @@ import { translate } from '../locales/translate'
 import { showToast } from '../utils/toast'
 
 function randomCode(): string {
-  return Math.random().toString(36).substring(2, 8).toUpperCase()
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
 }
 
 const TX_MAX_ATTEMPTS = 6

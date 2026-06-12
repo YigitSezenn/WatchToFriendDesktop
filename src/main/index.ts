@@ -10,12 +10,10 @@ import { buildYtPageHtml } from './ytPage'
 const YT_PORT = 7842
 const YT_LOCAL_ORIGIN = `http://127.0.0.1:${YT_PORT}`
 
-const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-
 function normalizeInviteCode(raw: string): string | null {
   const code = raw.toUpperCase().trim()
   if (code.length !== 6) return null
-  if (![...code].every((c) => CODE_CHARS.includes(c))) return null
+  if (!/^[A-Z0-9]{6}$/.test(code)) return null
   return code
 }
 

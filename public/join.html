@@ -107,22 +107,32 @@
   <script>
     const WEB_BASE = 'https://watchtofriend.web.app';
     const PKG = 'com.watch.watchtofriend';
-    const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
-    function normalizeCode(raw) {
-      const code = (raw || '').toUpperCase().trim();
-      if (code.length !== 6) return null;
-      if (![...code].every((c) => CODE_CHARS.includes(c))) return null;
-      return code;
-    }
+function normalizeCode(raw: string): string | null {
+  const code = (raw || '').toUpperCase().trim()
+  if (code.length !== 6) return null
+  if (!/^[A-Z0-9]{6}$/.test(code)) return null
+  return code
+}
 
-    function getCodeFromPath() {
-      const parts = location.pathname.split('/').filter(Boolean);
-      const joinIdx = parts.indexOf('join');
-      if (joinIdx >= 0 && parts[joinIdx + 1]) return normalizeCode(parts[joinIdx + 1]);
-      const q = new URLSearchParams(location.search).get('code');
-      return q ? normalizeCode(q) : null;
-    }
+function getCodeFromPath() {
+  const q = new URLSearchParams(location.search).get('code')
+  if (q) {
+    const fromQuery = normalizeCode(q)
+    if (fromQuery) return fromQuery
+  }
+  const parts = location.pathname.split('/').filter(Boolean)
+  const joinIdx = parts.indexOf('join')
+  if (joinIdx >= 0 && parts[joinIdx + 1]) {
+    const fromPath = normalizeCode(parts[joinIdx + 1])
+    if (fromPath) return fromPath
+  }
+  const hrefMatch = location.href.match(/\/join\/([A-Za-z0-9]{6})(?:[/?#]|$)/i)
+  if (hrefMatch?.[1]) return normalizeCode(hrefMatch[1])
+  const hashMatch = location.hash.match(/([A-Za-z0-9]{6})/)
+  if (hashMatch?.[1]) return normalizeCode(hashMatch[1])
+  return null
+}
 
     const code = getCodeFromPath();
     const codeEl = document.getElementById('room-code');
