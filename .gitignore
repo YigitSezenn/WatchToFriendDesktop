@@ -29,6 +29,16 @@ serviceAccount*.json
 
 # Large binaries (indirmeler Firebase Hosting'de)
 public/downloads/*.zip
+public/*.zip
+
+# Debug / geçici dosyalar
+_*.png
+_*.txt
+desk*.png
+npm-ls-out.txt
+pixeldrain-response.json
+windows_agent.md
+.claude/
 
 # Logs
 logs/
