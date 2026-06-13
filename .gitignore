@@ -23,6 +23,7 @@ serviceAccount*.json
 # Secrets & local env
 .env
 .env.*
+!.env.example
 .env.local
 *.pem
 *.p12

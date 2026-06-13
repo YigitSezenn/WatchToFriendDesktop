@@ -1,15 +1,16 @@
 import type { YtSearchResult } from '../types'
 
-const YT_API_KEY =
-  (import.meta.env.VITE_YOUTUBE_API_KEY as string | undefined) ??
-  ''
+function getYouTubeApiKey(): string | null {
+  const key = (import.meta.env.VITE_YOUTUBE_API_KEY as string | undefined)?.trim()
+  return key || null
+}
 
 /** YouTube Data API — yalnızca gömülebilir videoları döndürür */
-async function embeddableVideoIds(ids: string[]): Promise<Set<string>> {
+async function embeddableVideoIds(ids: string[], apiKey: string): Promise<Set<string>> {
   if (ids.length === 0) return new Set()
   try {
     const url =
-      `https://www.googleapis.com/youtube/v3/videos?part=status&id=${ids.join(',')}&key=${YT_API_KEY}`
+      `https://www.googleapis.com/youtube/v3/videos?part=status&id=${ids.join(',')}&key=${apiKey}`
     const res = await fetch(url)
     if (!res.ok) return new Set(ids)
     const data = await res.json()
@@ -28,10 +29,15 @@ async function embeddableVideoIds(ids: string[]): Promise<Set<string>> {
 export async function searchYouTube(query: string): Promise<YtSearchResult[]> {
   const q = query.trim()
   if (!q) return []
+  const apiKey = getYouTubeApiKey()
+  if (!apiKey) {
+    console.warn('[YouTube] VITE_YOUTUBE_API_KEY tanımlı değil — arama devre dışı.')
+    return []
+  }
   try {
     const url =
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20` +
-      `&q=${encodeURIComponent(q)}&key=${YT_API_KEY}`
+      `&q=${encodeURIComponent(q)}&key=${apiKey}`
     const res = await fetch(url)
     if (!res.ok) return []
     const data = await res.json()
@@ -40,7 +46,7 @@ export async function searchYouTube(query: string): Promise<YtSearchResult[]> {
       snippet?: { title?: string; channelTitle?: string; thumbnails?: { default?: { url?: string } } }
     }> | undefined
     if (!items) return []
-    return items
+    const results = items
       .map((it) => {
         const videoId = it.id?.videoId ?? ''
         const sn = it.snippet
@@ -53,7 +59,7 @@ export async function searchYouTube(query: string): Promise<YtSearchResult[]> {
         } satisfies YtSearchResult
       })
       .filter((r): r is YtSearchResult => r != null)
-    const allowed = await embeddableVideoIds(results.map(r => r.videoId))
+    const allowed = await embeddableVideoIds(results.map(r => r.videoId), apiKey)
     return results.filter(r => allowed.has(r.videoId))
   } catch {
     return []
