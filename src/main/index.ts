@@ -374,6 +374,7 @@ function createWindow(): BrowserWindow {
   })
 
   win.on('ready-to-show', () => {
+    win.maximize()
     win.show()
   })
 

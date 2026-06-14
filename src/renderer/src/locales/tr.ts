@@ -46,6 +46,7 @@ export const tr = {
   notif_new_messages: 'Yeni mesajlar',
 
   // Profile
+  profile_title: 'Profil',
   profile_language: 'Dil',
   profile_display_name: 'Kullanıcı Adı',
   profile_friend_id: 'Arkadaş Kodu',
@@ -88,6 +89,25 @@ export const tr = {
   profile_removing: 'Kaldırılıyor…',
   profile_photo_read_error: 'Dosya okunamadı',
   profile_photo_upload_error: 'Fotoğraf yüklenemedi',
+  profile_banner_upload_error: 'Banner yüklenemedi',
+  profile_bio_title: 'Bio',
+  profile_bio_hint: 'Kendinden birkaç cümleyle bahset',
+  profile_bio_placeholder: 'Birkaç cümleyle kendinden bahset…',
+  profile_bio_save: 'Bio kaydet',
+  profile_name_style_title: 'Görünen ad stili',
+  profile_name_style_hint: 'Yalnızca görünen ad rengini değiştirir',
+  profile_name_color: 'Renk seç',
+  profile_preview: 'Önizleme',
+  profile_eyebrow: 'WATCHTOFRIEND PROFİLİ',
+  profile_change_banner: 'Banner değiştir',
+  profile_remove_banner: 'Banner kaldır',
+  profile_show_settings: 'Diğer ayarları göster',
+  profile_hide_settings: 'Diğer ayarları gizle',
+
+  update_available_title: 'Yeni sürüm mevcut (v%1$s)',
+  update_available_body: 'En son özellikler ve düzeltmeler için güncellemeyi indirin.',
+  update_download: 'Güncellemeyi indir',
+  update_later: 'Sonra',
 
   // Tour
   tour_skip: 'Atla',

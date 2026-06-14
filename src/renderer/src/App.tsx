@@ -15,6 +15,7 @@ import ProfileModal from './screens/ProfileModal'
 import AdminScreen from './screens/AdminScreen'
 import { isAdminUser } from './constants/admin'
 import ToastHost from './components/ToastHost'
+import UpdateBanner from './components/UpdateBanner'
 import FirstLaunchTour, { isTourDone } from './components/FirstLaunchTour'
 import HelpModal from './components/HelpModal'
 import { useTheme } from './hooks/useTheme'
@@ -23,6 +24,7 @@ import { showToast } from './utils/toast'
 import { recordRoomSession, shouldPromptRating, openRatePage } from './utils/ratingPref'
 import { totalDmUnread } from './utils/formatBadge'
 import { useNotifications, type NotificationNavigateAction, type NotifScreen } from './hooks/useNotifications'
+import { useAppUpdate } from './hooks/useAppUpdate'
 import type { User } from './types'
 
 type Screen = 'home' | 'create' | 'join' | 'watch' | 'dm' | 'admin'
@@ -45,6 +47,20 @@ export default function App() {
   const [homeTabOverride, setHomeTabOverride] = useState<'rooms' | 'discover' | 'friends' | 'dm' | null>(null)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const { t } = useLocale()
+  const { update: appUpdate, dismiss: dismissAppUpdate } = useAppUpdate(!bootSplash && !loading)
+
+  function openUpdateDownload(url: string) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const appUpdateBanner = appUpdate ? (
+    <UpdateBanner
+      update={appUpdate}
+      t={t}
+      onDownload={() => openUpdateDownload(appUpdate.url)}
+      onDismiss={dismissAppUpdate}
+    />
+  ) : null
 
   useEffect(() => {
     const timer = window.setTimeout(() => setBootSplash(false), 900)
@@ -109,7 +125,7 @@ export default function App() {
     sendMessage: sendDm, deleteMessage: deleteDmMsg, toggleReaction, clearUnread } = dmHook
 
   const profileHook = useProfile(sessionUid)
-  const { ensureFriendCode, updateDisplayName, updatePhoto, removePhoto, useHistory, deleteHistory } = profileHook
+  const { ensureFriendCode, updateDisplayName, updatePhoto, removePhoto, updateBanner, removeBanner, updateBio, updateNameColor, useHistory, deleteHistory } = profileHook
   const history = useHistory()
 
   // useMemo: her render'da yeniden hesaplanmayı önle (büyük liste filtreleri)
@@ -262,6 +278,7 @@ export default function App() {
   if (!user) {
     return (
       <>
+        {appUpdateBanner}
         <LoginScreen
           onLogin={login}
           onRegister={register}
@@ -276,6 +293,7 @@ export default function App() {
   if (screen === 'create') {
     return (
       <>
+        {appUpdateBanner}
         <CreateRoomScreen
           onCreate={async (videoUrl, title, discoverable, password, maxMembers, scheduledAt) => {
             const code = await createRoom(videoUrl, user.displayName, title, discoverable, password, maxMembers, scheduledAt)
@@ -292,6 +310,7 @@ export default function App() {
   if (screen === 'join') {
     return (
       <>
+        {appUpdateBanner}
         <JoinRoomScreen
           initialCode={inviteJoinCode ?? undefined}
           onJoin={async (code, password) => {
@@ -313,6 +332,7 @@ export default function App() {
   if (screen === 'watch' && activeRoomId && activeRoom) {
     return (
       <>
+        {appUpdateBanner}
         <WatchRoomScreen
           roomId={activeRoomId}
           currentUser={user}
@@ -351,6 +371,8 @@ export default function App() {
         {showProfile && (
           <ProfileModal user={user} history={history}
             onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
+            onUpdateBanner={appUpdateBanner} onRemoveBanner={removeBanner}
+            onUpdateBio={updateBio} onUpdateNameColor={updateNameColor}
             onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
             onDeleteAccount={handleDeleteAccount}
             onChangePassword={(cur, neu) => changePassword(cur, neu)}
@@ -365,6 +387,7 @@ export default function App() {
   if (screen === 'admin' && isAdmin) {
     return (
       <>
+        {appUpdateBanner}
         <AdminScreen onBack={() => setScreen('home')} />
         <ToastHost />
       </>
@@ -374,6 +397,7 @@ export default function App() {
   if (screen === 'dm' && activeDmId && activeDmUid) {
     return (
       <>
+        {appUpdateBanner}
         <DmScreen
           dmId={activeDmId}
           otherName={activeDmFriend?.displayName ?? '?'}
@@ -391,6 +415,8 @@ export default function App() {
         {showProfile && (
           <ProfileModal user={user} history={history}
             onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
+            onUpdateBanner={appUpdateBanner} onRemoveBanner={removeBanner}
+            onUpdateBio={updateBio} onUpdateNameColor={updateNameColor}
             onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
             onDeleteAccount={handleDeleteAccount}
             onChangePassword={(cur, neu) => changePassword(cur, neu)}
@@ -404,6 +430,7 @@ export default function App() {
 
   return (
     <>
+      {appUpdateBanner}
       <HomeScreen
         currentUser={user}
         rooms={rooms}
@@ -466,6 +493,8 @@ export default function App() {
       {showProfile && (
         <ProfileModal user={user} history={history}
           onUpdateName={updateDisplayName} onUpdatePhoto={updatePhoto} onRemovePhoto={removePhoto}
+          onUpdateBanner={appUpdateBanner} onRemoveBanner={removeBanner}
+          onUpdateBio={updateBio} onUpdateNameColor={updateNameColor}
           onDeleteHistory={deleteHistory} onUnblockUser={unblockUser}
           onDeleteAccount={handleDeleteAccount}
           onChangePassword={(cur, neu) => changePassword(cur, neu)}

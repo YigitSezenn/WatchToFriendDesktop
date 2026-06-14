@@ -8,11 +8,14 @@
  * Firestore tek alan limiti: 1.048.487 byte — büyük fotoğraflar bu hatayı verir.
  */
 
-/** Firestore güvenli üst sınır (ham base64 karakter sayısı). */
-export const MAX_PHOTO_BASE64_LEN = 900_000
-
 /** Avatar için hedef en uzun kenar (px) — Android ile aynı. */
 const TARGET_MAX_EDGE = 256
+
+/** Banner için hedef en uzun kenar (px). */
+const BANNER_MAX_EDGE = 720
+
+/** Firestore güvenli üst sınır (ham base64 karakter sayısı). */
+export const MAX_PHOTO_BASE64_LEN = 900_000
 
 /** <img src> için kullanılabilir bir değer döndürür. Boşsa null. */
 export function photoSrc(photoBase64?: string | null): string | null {
@@ -77,3 +80,41 @@ export async function compressPhotoForStorage(dataUrlOrBase64: string): Promise<
   }
   return last
 }
+
+/** Banner görselini sıkıştırır (geniş, düşük kalite). */
+export async function compressBannerForStorage(dataUrlOrBase64: string): Promise<string> {
+  const trimmed = (dataUrlOrBase64 ?? '').trim()
+  if (!trimmed) return ''
+
+  const dataUrl = trimmed.startsWith('data:')
+    ? trimmed
+    : `data:image/jpeg;base64,${trimmed}`
+
+  const img = await loadImage(dataUrl)
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('Banner işlenemedi')
+
+  let maxEdge = BANNER_MAX_EDGE
+  let quality = 0.62
+  let last = ''
+
+  for (let attempt = 0; attempt < 14; attempt++) {
+    const scale = Math.min(1, maxEdge / Math.max(img.width, img.height))
+    canvas.width = Math.max(1, Math.round(img.width * scale))
+    canvas.height = Math.max(1, Math.round(img.height * scale))
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    last = normalizePhotoForStorage(canvas.toDataURL('image/jpeg', quality))
+    if (last.length <= MAX_PHOTO_BASE64_LEN) return last
+    if (quality > 0.38) quality -= 0.06
+    else maxEdge = Math.round(maxEdge * 0.82)
+  }
+
+  if (last.length > MAX_PHOTO_BASE64_LEN) {
+    throw new Error('Banner çok büyük. Daha küçük bir görsel seçin.')
+  }
+  return last
+}
+
+export const bannerSrc = photoSrc

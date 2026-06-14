@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useLocale } from '../hooks/useLocale'
+import { nameColorStyle } from '../utils/profileColor'
 import type { Message } from '../types'
 
 const EMOJIS = ['❤️', '😂', '👍', '🔥', '😮', '😢']
@@ -7,6 +8,7 @@ const EMOJIS = ['❤️', '😂', '👍', '🔥', '😮', '😢']
 interface Props {
   messages: Message[]
   myUid: string
+  nameColors?: Record<string, string>
   onSend: (text: string) => void | boolean | Promise<void | boolean>
   onTyping?: () => void
   onReaction?: (msgId: string, emoji: string) => void
@@ -15,7 +17,7 @@ interface Props {
 }
 
 export default function ChatPanel({
-  messages, myUid, onSend, onTyping, onReaction, searchQuery = '', typingLabel
+  messages, myUid, nameColors = {}, onSend, onTyping, onReaction, searchQuery = '', typingLabel
 }: Props) {
   const { t } = useLocale()
   const [text, setText] = useState('')
@@ -60,7 +62,7 @@ export default function ChatPanel({
           }
           return (
             <div key={msg.id} className={`chat-bubble-wrap ${isMe ? 'me' : 'other'}`}>
-              {!isMe && <div className="chat-sender">{msg.senderName}</div>}
+              {!isMe && <div className="chat-sender" style={nameColorStyle(nameColors[msg.senderUid])}>{msg.senderName}</div>}
               <div
                 className={`chat-bubble ${isMe ? 'bubble-me' : 'bubble-other'}`}
                 onContextMenu={(e) => {

@@ -5,6 +5,9 @@ export interface User {
   friendIds: string[]
   friendCode?: string
   photoBase64?: string
+  bannerBase64?: string
+  nameColor?: string
+  bio?: string
   lastActive?: number
   blockedIds?: string[]
 }

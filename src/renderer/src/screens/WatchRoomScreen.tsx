@@ -242,6 +242,15 @@ export default function WatchRoomScreen({
     return map
   }, [currentUser.uid, currentUser.photoBase64, friends])
 
+  const chatNameColors = useMemo(() => {
+    const map: Record<string, string> = {}
+    if (currentUser.nameColor) map[currentUser.uid] = currentUser.nameColor
+    friends.forEach(f => {
+      if (f.nameColor) map[f.uid] = f.nameColor
+    })
+    return map
+  }, [currentUser.uid, currentUser.nameColor, friends])
+
   // Odadan çıkarken ses kanalından da ayrıl
   const exitRoom = useCallback(async (action: () => void | Promise<void>) => {
     if (inVoice) await leaveVoice()
@@ -898,6 +907,7 @@ export default function WatchRoomScreen({
         <ChatPanel
           messages={messages.filter(m => !(currentUser.blockedIds ?? []).includes(m.senderUid ?? ''))}
           myUid={currentUser.uid}
+          nameColors={chatNameColors}
           onSend={onSendMessage}
           onTyping={onSetTyping}
           onReaction={(msgId, emoji) => { void onToggleReaction(msgId, emoji) }}

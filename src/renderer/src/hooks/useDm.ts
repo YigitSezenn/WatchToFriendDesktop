@@ -5,7 +5,7 @@ import {
   writeBatch, limitToLast, addDoc
 } from 'firebase/firestore'
 import { db } from '../firebase/config'
-import { compressPhotoForStorage } from '../utils/photo'
+import { compressPhotoForStorage, compressBannerForStorage } from '../utils/photo'
 import { serverNow } from '../utils/serverClock'
 import { translate } from '../locales/translate'
 import { showToast } from '../utils/toast'
@@ -156,6 +156,36 @@ export function useProfile(myUid: string) {
     await updateDoc(doc(db, 'users', myUid), { photoBase64: '' })
   }
 
+  async function updateBanner(base64: string) {
+    const compressed = await compressBannerForStorage(base64)
+    await updateDoc(doc(db, 'users', myUid), { bannerBase64: compressed })
+  }
+
+  async function removeBanner() {
+    await updateDoc(doc(db, 'users', myUid), { bannerBase64: '' })
+  }
+
+  async function updateBio(bio: string) {
+    await updateDoc(doc(db, 'users', myUid), { bio: bio.trim().slice(0, 300) })
+  }
+
+  async function updateNameColor(nameColor: string) {
+    await updateDoc(doc(db, 'users', myUid), { nameColor: nameColor.trim() })
+  }
+
+  async function updateProfileFields(fields: {
+    displayName?: string
+    bio?: string
+    nameColor?: string
+  }) {
+    const patch: Record<string, string> = {}
+    if (fields.displayName != null) patch.displayName = fields.displayName.trim()
+    if (fields.bio != null) patch.bio = fields.bio.trim().slice(0, 300)
+    if (fields.nameColor != null) patch.nameColor = fields.nameColor.trim()
+    if (Object.keys(patch).length === 0) return
+    await updateDoc(doc(db, 'users', myUid), patch)
+  }
+
   function useHistory() {
     const [history, setHistory] = useState<import('../types').WatchHistory[]>([])
     useEffect(() => {
@@ -178,5 +208,18 @@ export function useProfile(myUid: string) {
     await deleteDoc(doc(db, 'users', myUid, 'history', id))
   }
 
-  return { ensureFriendCode, updateDisplayName, updatePhoto, removePhoto, useHistory, addToHistory, deleteHistory }
+  return {
+    ensureFriendCode,
+    updateDisplayName,
+    updatePhoto,
+    removePhoto,
+    updateBanner,
+    removeBanner,
+    updateBio,
+    updateNameColor,
+    updateProfileFields,
+    useHistory,
+    addToHistory,
+    deleteHistory
+  }
 }

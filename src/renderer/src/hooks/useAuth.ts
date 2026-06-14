@@ -176,6 +176,16 @@ export function useAuth() {
     await deleteUser(firebaseUser)
   }
 
+  async function reloadUser() {
+    const firebaseUser = auth.currentUser
+    if (!firebaseUser) return
+    try {
+      setUser(await ensureUserDocument(firebaseUser))
+    } catch {
+      setUser(authProfileUser(firebaseUser))
+    }
+  }
+
   return {
     user,
     loading,
@@ -185,6 +195,7 @@ export function useAuth() {
     resetPassword,
     logout,
     changePassword,
-    deleteAccount
+    deleteAccount,
+    reloadUser
   }
 }
