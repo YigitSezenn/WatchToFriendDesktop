@@ -1,14 +1,14 @@
 {
   "windows": {
-    "version": "1.5.0",
-    "url": "https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip",
-    "filename": "WatchToFriend-1.5.0.zip",
-    "setupExe": "WatchToFriend Setup 1.5.0.exe",
+    "version": "1.5.2",
+    "url": "https://watchtofriend.web.app/downloads/WatchToFriend-1.5.2.zip",
+    "filename": "WatchToFriend-1.5.2.zip",
+    "setupExe": "WatchToFriend Setup 1.5.2.exe",
     "host": "watchtofriend.web.app",
     "updated": "2026-06-14"
   },
   "android": {
-    "version": "1.5.0",
+    "version": "1.5.2",
     "comingSoon": false,
     "label": "Google Play'de İndir",
     "url": "https://play.google.com/store/apps/details?id=com.watch.watchtofriend",
