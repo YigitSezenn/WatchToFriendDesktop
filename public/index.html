@@ -332,6 +332,16 @@
       text-decoration: none;
       box-shadow: 0 4px 24px rgba(124,92,252,0.4);
     }
+    .mobile-dock-btns {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+    }
+    .mobile-dock-btn.play {
+      background: var(--bg4);
+      box-shadow: none;
+      border: 1px solid rgba(124,92,252,0.35);
+    }
     .mobile-dock-meta {
       font-size: 11px;
       color: var(--text3);
@@ -633,6 +643,51 @@
     }
     .btn-outline:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
 
+    .btn-play {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg3);
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+      padding: 16px 26px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: 1px solid rgba(124,92,252,0.35);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: all 0.25s;
+    }
+    .btn-play:hover {
+      transform: translateY(-3px);
+      border-color: var(--accent);
+      background: var(--bg4);
+      box-shadow: 0 12px 40px rgba(124,92,252,0.25);
+    }
+    .btn-play .play-badge {
+      width: 28px; height: 28px;
+      flex-shrink: 0;
+    }
+    .btn-play small { display: block; font-size: 11px; font-weight: 400; color: var(--text2); }
+
+    .hero-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 28px;
+      animation: fadeInUp 0.7s ease 0.4s both;
+    }
+    .hero-chips span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent3);
+      background: rgba(124,92,252,0.12);
+      border: 1px solid rgba(124,92,252,0.28);
+      border-radius: 999px;
+      padding: 7px 14px;
+      letter-spacing: 0.01em;
+    }
+
     /* Hero mockup */
     .hero-mockup {
       border-radius: 20px;
@@ -860,7 +915,7 @@
       background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 32px;
+      padding: 36px 32px 40px;
       transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
       position: relative;
       overflow: hidden;
@@ -1061,20 +1116,7 @@
       border: 1px solid var(--border);
       transition: all 0.2s;
     }
-    .btn-android.coming,
-    .btn-outline.coming {
-      opacity: 0.85;
-      cursor: default;
-      pointer-events: none;
-      user-select: none;
-    }
-    .btn-android:hover:not(.coming) { border-color: var(--border2); color: var(--text); }
-    .coming-soon-note {
-      color: var(--text3);
-      font-size: 12px;
-      margin-top: 8px;
-      text-align: center;
-    }
+    .btn-android:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
 
     /* ─────────── PRICING / FREE ─────────── */
     .free-section {
@@ -1311,6 +1353,15 @@
       position: relative;
       z-index: 1;
     }
+    .download-ctas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      align-items: stretch;
+      position: relative;
+      z-index: 1;
+    }
     .dl-meta {
       display: flex;
       align-items: center;
@@ -1440,7 +1491,7 @@
       .free-section { padding: 72px 20px; }
       .free-features { grid-template-columns: 1fr 1fr; gap: 12px; }
       .download-hero { padding: 72px 20px 100px; }
-      .download-hero .btn-outline { display: none; }
+      .btn-download, .btn-outline, .btn-play { width: 100%; max-width: 340px; justify-content: center; }
       .dl-meta { flex-direction: column; gap: 8px; }
       .dl-meta .dot-sep { display: none; }
       footer { padding: 40px 20px 100px; }
@@ -1448,8 +1499,8 @@
       .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
       .section-sub { margin-bottom: 48px; }
       .hero { padding: 88px 20px 48px; min-height: auto; }
-      .hero-ctas { margin-bottom: 28px; }
-      .btn-download, .btn-outline { width: 100%; max-width: 340px; justify-content: center; }
+      .hero-ctas { margin-bottom: 8px; }
+      .hero-chips { justify-content: center; }
     }
     @media (max-width: 600px) {
       .nav-logo span.brand-name { display: none; }
@@ -1517,6 +1568,7 @@
     <a href="#download">İndir</a>
     <div class="mobile-menu-cta">
       <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip" class="btn-primary" download>⬇ Windows İndir · v1.5.0</a>
+      <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" class="btn-play" target="_blank" rel="noopener noreferrer" style="width:100%;justify-content:center;margin-top:10px;">Google Play</a>
     </div>
   </div>
 </div>
@@ -1549,12 +1601,24 @@
           <span class="ico">⬇</span>
           <span>
             Windows için İndir
-            <small>Ücretsiz · v1.5.0 · WatchToFriend-1.5.0.zip (~90 MB, içinde kurulum exe)</small>
+            <small>Ücretsiz · v1.5.0 · WatchToFriend-1.5.0.zip</small>
           </span>
         </a>
-        <a href="#features" class="btn-outline">
-          Özellikleri Keşfet →
+        <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" class="btn-play" target="_blank" rel="noopener noreferrer">
+          <svg class="play-badge" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M3.2 2.1v19.8L12.6 12z"/><path fill="#FBBC04" d="M12.6 12 3.2 21.9 18.1 13.6z"/><path fill="#EA4335" d="M18.1 10.4 3.2 2.1 12.6 12z"/><path fill="#4285F4" d="M18.1 13.6 20.8 12.1c.7-.4.7-1.6 0-2L18.1 10.4 12.6 12z"/></svg>
+          <span>
+            Google Play
+            <small>Android 8.0+</small>
+          </span>
         </a>
+      </div>
+      <div class="hero-chips">
+        <span>Gerçek zamanlı senkron</span>
+        <span>Sesli sohbet</span>
+        <span>Ekran paylaşımı</span>
+        <span>Chat</span>
+        <span>Windows</span>
+        <span>Android</span>
       </div>
     </div>
 
@@ -1740,7 +1804,7 @@
     <div class="step reveal">
       <div class="step-circle">1</div>
       <div class="step-title">İndir ve Kur</div>
-      <div class="step-desc">Windows zip'ini indir → aç → <strong>WatchToFriend Setup 1.5.0.exe</strong>'ye çift tıkla. Android sürümü yakında Google Play'de.</div>
+      <div class="step-desc">Windows zip'ini indir → aç → <strong>WatchToFriend Setup 1.5.0.exe</strong>'ye çift tıkla. Android için <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);font-weight:600;">Google Play</a>'den yükle.</div>
     </div>
     <div class="step reveal">
       <div class="step-circle">2</div>
@@ -1791,8 +1855,7 @@
         <div class="platform-feat">Tam ekran mod</div>
       </div>
       <div class="platform-cta">
-        <span class="btn-android coming">▶ Yakında Google Play'de</span>
-        <p class="coming-soon-note">Uygulama yayınlanınca buraya link ekleyeceğiz.</p>
+        <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" class="btn-android" target="_blank" rel="noopener noreferrer">▶ Google Play'de İndir</a>
       </div>
     </div>
   </div>
@@ -1943,6 +2006,10 @@
       <div class="faq-a">Evet. Abonelik, reklam veya gizli ücret yok. Tüm özellikler — sesli sohbet, ekran paylaşımı, sınırsız oda — tamamen ücretsiz.</div>
     </div>
     <div class="faq-item reveal">
+      <button class="faq-q" type="button">Android uygulamasını nereden indiririm?<span>+</span></button>
+      <div class="faq-a">Google Play'den WatchToFriend'i yükleyebilirsiniz: <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" target="_blank" rel="noopener noreferrer" style="color:var(--accent2);font-weight:600;">play.google.com/store/apps/details?id=com.watch.watchtofriend</a>. Windows için zip kurulumunu siteden indirin.</div>
+    </div>
+    <div class="faq-item reveal">
       <button class="faq-q" type="button">Windows ve Android aynı odada birlikte çalışır mı?<span>+</span></button>
       <div class="faq-a">Evet. Aynı 6 haneli oda kodunu kullanarak farklı platformlardan aynı odaya katılabilirsiniz. Video senkronu, chat ve sesli sohbet her iki tarafta da çalışır.</div>
     </div>
@@ -1989,7 +2056,7 @@
   <h2 class="reveal">Hemen Başla</h2>
   <p class="reveal">İndir, kur, arkadaşlarını davet et. 30 saniye yeterli.</p>
 
-  <div style="position:relative;z-index:1;" class="reveal">
+  <div class="download-ctas reveal">
     <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip" class="btn-download" style="font-size:17px;padding:18px 40px;" download>
       <span class="ico">⬇</span>
       <span>
@@ -1997,15 +2064,19 @@
         <small>WatchToFriend-1.5.0.zip · içinde WatchToFriend Setup 1.5.0.exe · ~90 MB</small>
       </span>
     </a>
-    <span class="btn-outline coming" style="margin-left:12px;font-size:17px;padding:18px 32px;display:inline-flex;align-items:center;">
-      📱 Yakında Google Play'de
-    </span>
+    <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" class="btn-play" target="_blank" rel="noopener noreferrer" style="font-size:17px;padding:18px 32px;">
+      <svg class="play-badge" viewBox="0 0 24 24" aria-hidden="true"><path fill="#34A853" d="M3.2 2.1v19.8L12.6 12z"/><path fill="#FBBC04" d="M12.6 12 3.2 21.9 18.1 13.6z"/><path fill="#EA4335" d="M18.1 10.4 3.2 2.1 12.6 12z"/><path fill="#4285F4" d="M18.1 13.6 20.8 12.1c.7-.4.7-1.6 0-2L18.1 10.4 12.6 12z"/></svg>
+      <span>
+        Google Play
+        <small>Android 8.0+</small>
+      </span>
+    </a>
   </div>
 
   <div class="dl-meta reveal">
     <span>💻 Windows 10/11 · v1.5.0</span>
     <span class="dot-sep">·</span>
-    <span>📱 Android · Yakında Google Play'de</span>
+    <span>📱 Android · Google Play</span>
     <span class="dot-sep">·</span>
     <span>🆓 Ücretsiz</span>
   </div>
@@ -2037,7 +2108,7 @@
       <a href="#faq">SSS</a>
       <a href="#changelog">Sürüm Notları</a>
       <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip" download>Windows v1.5.0</a>
-      <span style="color:var(--text3);font-size:14px;">Android · Yakında Google Play'de</span>
+      <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" target="_blank" rel="noopener noreferrer">Android · Google Play</a>
     </div>
     <div class="footer-col">
       <h4>Teknoloji</h4>
@@ -2054,8 +2125,11 @@
 </footer>
 
 <div class="mobile-dock">
-  <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip" class="mobile-dock-btn" download>⬇ Windows İndir · Ücretsiz</a>
-  <span class="mobile-dock-meta">v1.5.0 · Android yakında</span>
+  <div class="mobile-dock-btns">
+    <a href="https://watchtofriend.web.app/downloads/WatchToFriend-1.5.0.zip" class="mobile-dock-btn" download>⬇ Windows</a>
+    <a href="https://play.google.com/store/apps/details?id=com.watch.watchtofriend" class="mobile-dock-btn play" target="_blank" rel="noopener noreferrer">Google Play</a>
+  </div>
+  <span class="mobile-dock-meta">v1.5.0 · Ücretsiz</span>
 </div>
 
 <script>
@@ -2102,6 +2176,7 @@
   // İndirme linklerini ve sürüm metinlerini downloads.json'dan güncelle
   fetch('/downloads.json').then(r => r.json()).then(data => {
     const win = data?.windows;
+    const android = data?.android;
     const url = win?.url;
     const version = win?.version;
     const filename = win?.filename;
@@ -2112,10 +2187,14 @@
       const bar = document.querySelector('.announce-bar a[download]');
       if (bar) bar.href = url;
     }
+    const playUrl = android?.url;
+    if (playUrl && playUrl.startsWith('http')) {
+      document.querySelectorAll('a[href*="play.google.com"]').forEach(a => { a.href = playUrl; });
+    }
     if (version) {
       const v = 'v' + version;
       document.querySelectorAll('.nav-version-badge, .mobile-dock-meta').forEach(el => {
-        if (el.classList.contains('mobile-dock-meta')) el.textContent = v + ' · Android yakında';
+        if (el.classList.contains('mobile-dock-meta')) el.textContent = v + ' · Ücretsiz';
         else el.textContent = v;
       });
       document.body.querySelectorAll('small').forEach(el => {
